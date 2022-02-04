@@ -5,6 +5,7 @@
 .history/
 
 # compiler 
-.BTree
-.hash
-.input
+BTree
+hash
+input
+main

@@ -7,195 +7,287 @@
 using namespace std;
 
 // this function will delete all unexpected space in our input!
-string ignore_space(string str){
+string ignore_space(string str)
+{
     string tmp = "";
     bool flag = false;
     bool startspace = false;
-    for (int i=0;i<str.length() ;i++){
-        if(!startspace){
-            if(str[i]!=' '){
-                startspace=true;
-                tmp+=str[i];
+    for (int i = 0; i < str.length(); i++)
+    {
+        if (!startspace)
+        {
+            if (str[i] != ' ')
+            {
+                startspace = true;
+                tmp += str[i];
             }
         }
-        else if(str[i]=='('){
-            flag=true;
-            tmp+=str[i];
-        }    
-        else if(str[i] != ' ' && str[i]!=','){
-            tmp += str[i];
-            flag= false;
-        }
-        else if(str[i]==' ' && !flag) {   
-            tmp+=str[i];
+        else if (str[i] == '(')
+        {
             flag = true;
-        }   
-        else if(str[i] ==','){
-            tmp+=str[i];
-            flag=true;
-        }    
+            tmp += str[i];
+        }
+        else if (str[i] != ' ' && str[i] != ',')
+        {
+            tmp += str[i];
+            flag = false;
+        }
+        else if (str[i] == ' ' && !flag)
+        {
+            tmp += str[i];
+            flag = true;
+        }
+        else if (str[i] == ',')
+        {
+            tmp += str[i];
+            flag = true;
+        }
     }
-    
+
     return tmp;
 }
 
 // this function check validation of timestamp.
-bool valid_timestamp(string str){
-    int i=0;
-    for(int j=0;j<str.length();j++){
-        if(str[j]=='/')
+bool valid_timestamp(string str)
+{
+    int i = 0;
+    for (int j = 0; j < str.length(); j++)
+    {
+        if (str[j] == '/')
             i++;
     }
-    if(i!=2)
+    if (i != 2)
         return false;
-    
-    i=0;
-    while (str[i]!='/')
+
+    i = 0;
+    while (str[i] != '/')
         i++;
-    
-    if(i!=4){
+
+    if (i != 4)
+    {
         return false;
     }
-    i=str.length()-1;
+    i = str.length() - 1;
     string tmp = "";
-    while(str[i]!='/'){
+    while (str[i] != '/')
+    {
         tmp += str[i];
         i--;
-    }    
+    }
 
-    
     tmp = reverse(tmp);
     int day = convert_to_int(tmp);
 
     // cout <<" day: " << tmp << endl;
 
-    if(!(1<= day <= 31)|| tmp[0]=='0')
-        return false;  
-    i--;  
+    if (!(1 <= day <= 31) || tmp[0] == '0')
+        return false;
+    i--;
     tmp = "";
-    while(str[i]!='/'){
+    while (str[i] != '/')
+    {
         tmp += str[i];
         i--;
     }
-    
+
     tmp = reverse(tmp);
     int month = convert_to_int(tmp);
 
-    if(month>12 || month<1 || tmp[0]=='0')
-        return false;    
+    if (month > 12 || month < 1 || tmp[0] == '0')
+        return false;
 
-    // cout << "month " << tmp<< endl;  
+    // cout << "month " << tmp<< endl;
 
-    return true;         
+    return true;
 }
 
 // this function check the input type is string or not.
-bool valid_string(string str){
-    if(str[0] == '"' && str[str.length()-1]=='"')
+bool valid_string(string str)
+{
+    if (str[0] == '"' && str[str.length() - 1] == '"')
         return true;
     return false;
 }
 
 // i defined int = 0 and string = 1 and timestamp = 2.
-int determine_type_data(string type){
-    try{
-        if(type == "int")
+int determine_type_data(string type)
+{
+    try
+    {
+        if (type == "int")
             return 0;
-        if(type=="string")
+        if (type == "string")
             return 1;
-        else if (type=="timestamp")
+        else if (type == "timestamp")
             return 2;
         else
-            throw type; 
-    }catch(...){
+            throw type;
+    }
+    catch (...)
+    {
         cout << "Invalid Type ERROR!! status: 400 , msg:BadRequest " << endl;
     }
     return -1;
 }
 
 // in this function i will determine the condition is on what column.
-string colNameOfCondition(string condition){
-    int i=0;
-    string res ="";
-    while(condition[i]!= '=' && condition[i]!='>' && condition[i]!='<'){
-        res+=condition[i];
+string colNameOfCondition(string condition)
+{
+    int i = 0;
+    string res = "";
+    while (condition[i] != '=' && condition[i] != '>' && condition[i] != '<')
+    {
+        res += condition[i];
         i++;
     }
     return res;
 }
 
 // we define == = 0 and > = 1 and < = 2.
-int TypeOfCondition(string condition){
-    for(int i=0;i<condition.length();i++){
-        if(condition[i]=='=')
+int TypeOfCondition(string condition)
+{
+    for (int i = 0; i < condition.length(); i++)
+    {
+        if (condition[i] == '=')
             return 0;
-        else if(condition[i]=='>')
+        else if (condition[i] == '>')
             return 1;
-        else if(condition[i]=='<')
-            return 2;        
+        else if (condition[i] == '<')
+            return 2;
     }
     return 0;
 }
 
-string FindLimitation(string condition){
+string FindLimitation(string condition)
+{
     string res = "";
-    int i= condition.length()-1;
-    while(condition[i]!= '=' && condition[i]!='>' && condition[i]!='<'){
-        res+=condition[i];
+    int i = condition.length() - 1;
+    while (condition[i] != '=' && condition[i] != '>' && condition[i] != '<')
+    {
+        res += condition[i];
         i--;
     }
     return res;
 }
 
+
+void print_selectQuery(bool flag, vector<int> v_dataType, int col, vector<Node<long long> *> v){
+    if (v.size() == 0)
+        {
+            cout << "dose not exist any data by this limitation!" << endl;
+            return;
+        }
+    if (flag){
+
+        for (int i = 0; i < v.size(); i++)
+        {
+            Node<long long> *p = v[i];
+            vector<long long> v_tmp;
+            while (p->nextField != v[i])
+            {
+                v_tmp.push_back(p->data);
+                p = p->nextField;
+            }
+            v_tmp.push_back(p->data);
+            // for(int i=0;i<v_tmp.size();i++){
+            //     cout << v_tmp[i] <<" ";
+            // }
+            // cout << " col :" << col;
+            int k = 0;
+            for (int j = v_tmp.size() - col; j <= v_tmp.size() - 1; j++)
+            {
+                if (v_dataType[k] == 0)
+                {
+                    cout << v_tmp[j] << "     ";
+                }
+                else if (v_dataType[k] == 1)
+                {
+                    cout << string_hash_inverse(v_tmp[j]) << "     ";
+                }
+                else if (v_dataType[k] == 2)
+                {
+                    cout << timestamp_hash_inverse(v_tmp[j]) << "     ";
+                }
+                k++;
+            }
+            for (int j = 0; j < v_tmp.size() - col; j++)
+            {
+                if (v_dataType[k] == 0)
+                {
+                    cout << v_tmp[j] << "     ";
+                }
+                else if (v_dataType[k] == 1)
+                {
+                    cout << string_hash_inverse(v_tmp[j]) << "     ";
+                }
+                else if (v_dataType[k] == 2)
+                {
+                    cout << timestamp_hash_inverse(v_tmp[j]) << "     ";
+                }
+                k++;
+            }
+            cout << endl;
+        }
+    }
+}
+
+
 // CREATE TABLE {table name} (column1 type,column2 type,...)
 // CREATE TABLE employee (name string,joinDate timestamp,income int)
-void CreateTableQuery(string query, vector<int>& v_dataType, vector<string>& v_columnName , string& tableName,vector<Btree<long long>>& bt){
-    try{
-        string tmp = query.substr(0,13);
+void CreateTableQuery(string query, vector<int> &v_dataType, vector<string> &v_columnName, string &tableName, vector<Btree<long long>> &bt)
+{
+    try
+    {
+        string tmp = query.substr(0, 13);
 
-        if(tmp != "CREATE TABLE ")
+        if (tmp != "CREATE TABLE ")
             throw query;
-        
-        int i=13;
-        while (query[i]!= ' ')
+
+        int i = 13;
+        while (query[i] != ' ')
         {
-            tableName+=query[i];
+            tableName += query[i];
             i++;
         }
         // cout << tableName << endl;
         // i++;
 
-        string str= "";
-        for(int j=0;j<query.length();j++){
-            if (query[j]=='('){
+        string str = "";
+        for (int j = 0; j < query.length(); j++)
+        {
+            if (query[j] == '(')
+            {
                 str = query.substr(j);
                 break;
-            }    
+            }
         }
         // cout << str << endl;
-        i=0;
-        while(i<str.length()){
+        i = 0;
+        while (i < str.length())
+        {
             i++;
             string t = "";
-            while(str[i]!=' '){
-                t+=str[i];
+            while (str[i] != ' ')
+            {
+                t += str[i];
                 i++;
             }
             // cout << "t: "<< t;
             v_columnName.push_back(t);
-            t="";
+            t = "";
             i++;
-            while(str[i] !=','&& str[i]!= ')'){
-                t+=str[i];
+            while (str[i] != ',' && str[i] != ')')
+            {
+                t += str[i];
                 i++;
-            }  
+            }
             v_dataType.push_back(determine_type_data(t));
-            if(str[i]==')')
+            if (str[i] == ')')
                 break;
         }
 
-
-        for(int i=0;i<v_columnName.size();i++){
+        for (int i = 0; i < v_columnName.size(); i++)
+        {
             bt.push_back(Btree<long long>(3));
         };
 
@@ -214,7 +306,7 @@ void CreateTableQuery(string query, vector<int>& v_dataType, vector<string>& v_c
         //             }
         //             i++;
         //             cout <<"str: " << str<< endl;
-                    
+
         //             v_columnName.push_back(str);
         //             str="";
         //             while (query[i]!=','&& query[i]!=')')
@@ -225,7 +317,7 @@ void CreateTableQuery(string query, vector<int>& v_dataType, vector<string>& v_c
         //             v_dataType.push_back(determine_type_data(str));
         //             cout <<"typr: " << str<< endl;
         //             str="";
-        //         // } 
+        //         // }
         //     }
         //     if(query[i]!='(' || query[i]!=',')
         //         i++;
@@ -238,42 +330,51 @@ void CreateTableQuery(string query, vector<int>& v_dataType, vector<string>& v_c
         //     cout << v_columnName[i] << " ";
         // }
         // cout << endl;
-    }catch(...){
-        cout << "Invalid Syntax for creating table! status:400 msg:BadRequest"<< endl;
+    }
+    catch (...)
+    {
+        cout << "Invalid Syntax for creating table! status:400 msg:BadRequest" << endl;
     }
 }
 
 // INSERT INTO {table name} VALUES (field1,field2,...)
 // INSERT INTO employee VALUES ("hamid",2022/8/6,45000)
-void InsertIntoQuery(string query , vector<int> v_dataType , vector<string> v_columnName, string tableName,vector<Btree<long long>>& bt){
-    try{
-        if(bt.size()==0){
+void InsertIntoQuery(string query, vector<int> v_dataType, vector<string> v_columnName, string tableName, vector<Btree<long long>> &bt)
+{
+    try
+    {
+        if (bt.size() == 0)
+        {
             throw bt;
         }
 
         vector<string> v_allDataToInsert;
-        string tmp = query.substr(0,12);
+        string tmp = query.substr(0, 12);
         // cout << tmp;
-        if(tmp != "INSERT INTO ")
+        if (tmp != "INSERT INTO ")
             throw query;
-        
+
         string str;
-        for(int i=0;i<query.length();i++){
-            if(query[i]=='('){
+        for (int i = 0; i < query.length(); i++)
+        {
+            if (query[i] == '(')
+            {
                 str = query.substr(i);
             }
         }
 
-        int i=0;
-        while(i<str.length()){
+        int i = 0;
+        while (i < str.length())
+        {
             i++;
             string t = "";
-            while(str[i] !=','&& str[i]!= ')'){
-                t+=str[i];
+            while (str[i] != ',' && str[i] != ')')
+            {
+                t += str[i];
                 i++;
             }
             v_allDataToInsert.push_back(t);
-            if(str[i]==')')
+            if (str[i] == ')')
                 break;
         }
         // for(int i=0;i<v_allDataToInsert.size();i++){
@@ -282,24 +383,32 @@ void InsertIntoQuery(string query , vector<int> v_dataType , vector<string> v_co
         // cout << endl;
 
         // in this section i should check validation type
-        for(int i=1;i<v_dataType.size();i++){
-            if(v_dataType[i]==2){
-                if(! valid_timestamp(v_allDataToInsert[i-1])){
+        for (int i = 1; i < v_dataType.size(); i++)
+        {
+            if (v_dataType[i] == 2)
+            {
+                if (!valid_timestamp(v_allDataToInsert[i - 1]))
+                {
                     throw v_allDataToInsert;
                 }
-            }  
-            else if(v_dataType[i] == 1){
-                if(!valid_string(v_allDataToInsert[i-1])){
+            }
+            else if (v_dataType[i] == 1)
+            {
+                if (!valid_string(v_allDataToInsert[i - 1]))
+                {
                     throw v_allDataToInsert;
                 }
-            }      
+            }
         }
-         
+
         // find best id
         int id;
-        if(bt[0].root == nullptr){
-           id = 1;    
-        }else{
+        if (bt[0].root == nullptr)
+        {
+            id = 1;
+        }
+        else
+        {
             id = bt[0].root->FindBestId();
         }
 
@@ -311,83 +420,94 @@ void InsertIntoQuery(string query , vector<int> v_dataType , vector<string> v_co
         // cout << endl;
 
         // make all nodes
-        Node<long long>*prv = new Node<long long>(id); 
-        Node<long long>*ID = prv;
+        Node<long long> *prv = new Node<long long>(id);
+        Node<long long> *ID = prv;
         bt[0].insert(prv);
 
-        for(int i=1;i<v_dataType.size();i++){
+        for (int i = 1; i < v_dataType.size(); i++)
+        {
             long long data = 0;
-            
-            if(v_dataType[i] == 0){ 
-                data = stoi(v_allDataToInsert[i-1]);
+
+            if (v_dataType[i] == 0)
+            {
+                data = stoi(v_allDataToInsert[i - 1]);
                 // cout << "0      "<< data << endl;
             }
-            else if(v_dataType[i] == 1){
-                data = string_hash(v_allDataToInsert[i-1]);
+            else if (v_dataType[i] == 1)
+            {
+                data = string_hash(v_allDataToInsert[i - 1]);
                 // cout <<"1    " << data << endl;
             }
-            else if(v_dataType[i]== 2){
-                data = timestamp_hash(v_allDataToInsert[i-1]);
+            else if (v_dataType[i] == 2)
+            {
+                data = timestamp_hash(v_allDataToInsert[i - 1]);
                 // cout <<"2    "<< data << endl;
             }
-            
+
             Node<long long> *p = new Node<long long>(data);
             prv->nextField = p;
             prv = p;
             // insert it to our btree.
             bt[i].insert(p);
-            if(i==bt.size()-1)
-                p->nextField = ID;   // the last one have a pointer to first one.
-
+            if (i == bt.size() - 1)
+                p->nextField = ID; // the last one have a pointer to first one.
         };
-
-    }catch(vector<Btree<int>>bt){
+    }
+    catch (vector<Btree<int>> bt)
+    {
         cout << "At first you should create table!  status : 400 , msg: BadRequest." << endl;
-    }catch(vector<string> v_allDataForUpdate){
+    }
+    catch (vector<string> v_allDataForUpdate)
+    {
         cout << "invalid Timestamp || string! status: 400 , msg: BadRequest" << endl;
     }
-    catch(...){
+    catch (...)
+    {
         cout << "Invalid Syntax ERROR! InsetIntoTable  status:400 , msg : BadRequest. " << endl;
     }
-
 }
-
 
 // UPDATE {table name} SET ("Hamid",2022/8/7,50000)
 // UPDATE employee SET ("Hamid",2022/8/7,50000) WHERE name=="Hamid"
-void UpdateQuery(string query , vector<int> v_dataType , vector<string> v_columnName, string tableName,vector<Btree<long long>>& bt){
-    try{
+void UpdateQuery(string query, vector<int> v_dataType, vector<string> v_columnName, string tableName, vector<Btree<long long>> &bt)
+{
+    try
+    {
         vector<string> v_allDataForUpdate;
-        string condition ="";
-        string tmp = query.substr(0,7);
+        string condition = "";
+        string tmp = query.substr(0, 7);
         // cout << tmp;
-        if(tmp != "UPDATE ")
+        if (tmp != "UPDATE ")
             throw query;
-        
+
         string str;
-        for(int i=0;i<query.length();i++){
-            if(query[i]=='('){
+        for (int i = 0; i < query.length(); i++)
+        {
+            if (query[i] == '(')
+            {
                 str = query.substr(i);
             }
         }
 
-        int i=0;
-        while(i<str.length()){
+        int i = 0;
+        while (i < str.length())
+        {
             i++;
             string t = "";
-            while(str[i] !=','&& str[i]!= ')'){
-                t+=str[i];
+            while (str[i] != ',' && str[i] != ')')
+            {
+                t += str[i];
                 i++;
             }
             v_allDataForUpdate.push_back(t);
-            if(str[i]==')')
+            if (str[i] == ')')
                 break;
         }
         i++;
-        if(str.substr(i+1,5)!="WHERE")
+        if (str.substr(i + 1, 5) != "WHERE")
             throw query;
 
-        i+=7;
+        i += 7;
 
         condition = str.substr(i);
         // for(int i=0;i<v_allDataForUpdate.size();i++){
@@ -398,90 +518,92 @@ void UpdateQuery(string query , vector<int> v_dataType , vector<string> v_column
 
         // TODO: make condition to a readable condition.
         // TODO : find the data by that condition and updete it.
-
-
-    }catch(...){
+    }
+    catch (...)
+    {
         cout << "Invalid Syntax ERROR! UpdateTable  status:400 , msg : BadRequest. " << endl;
     }
 }
 
 // DELETE FROM {table name} WHERE {condition}
 // DELETE FROM employee WHERE income>40000
-void DeleteFromQuery(string query , vector<int> v_dataType , vector<string> v_columnName, string tableName,vector<Btree<long long>>& bt){
-    try{
-        string condition ="";
-        string tmp = query.substr(0,12);
+void DeleteFromQuery(string query, vector<int> v_dataType, vector<string> v_columnName, string tableName, vector<Btree<long long>> &bt)
+{
+    try
+    {
+        string condition = "";
+        string tmp = query.substr(0, 12);
         // cout << tmp;
-        if(tmp != "DELETE FROM ")
+        if (tmp != "DELETE FROM ")
             throw query;
 
-        int i=0,c=0;
-        while(c!=3) {
-            if(query[i]==' ')
+        int i = 0, c = 0;
+        while (c != 3)
+        {
+            if (query[i] == ' ')
                 c++;
             i++;
-            if(i>query.length()) {
+            if (i > query.length())
+            {
                 throw query;
                 return;
-            }   
-        }  
-        // cout << "where : " << query.substr(i,5) ; 
-        if(query.substr(i,5)!="WHERE")
+            }
+        }
+        // cout << "where : " << query.substr(i,5) ;
+        if (query.substr(i, 5) != "WHERE")
             throw query;
 
-        i+=6;
+        i += 6;
         condition = query.substr(i);
 
         // TODO: make condition to a readable condition.
         // TODO : find the data by that condition and delete it from our btree.
 
         // cout << "condition : " << condition;
-    }catch(...){
+    }
+    catch (...)
+    {
         cout << "Invalid Syntax ERROR! DeleteFromTable.  status:400 , msg : BadRequest. " << endl;
     }
 }
 
-
 // SELECT {(column1,column2,...) or *} FROM {table name} WHERE condition
 // SELECT * FROM employee WHERE income>45000
 // SELECT (name,income) FROM employee WHERE income>45000
-void SelectQuery(string query , vector<int> v_dataType , vector<string> v_columnName, string tableName,vector<Btree<long long>>& bt){
-    try{
+void SelectQuery(string query, vector<int> v_dataType, vector<string> v_columnName, string tableName, vector<Btree<long long>> &bt){
+    try { 
         bool flag = false;
-        string condition ="";
-        string tmp = query.substr(0,7);
+        string condition = "";
+        string tmp = query.substr(0, 7);
         // cout << tmp;
-        if(tmp != "SELECT ")
+        if (tmp != "SELECT ")
             throw query;
 
-        for(int i=0;i<query.length();i++){
-            if(query[i]=='*'){
+        for (int i = 0; i < query.length(); i++){
+            if (query[i] == '*'){
                 flag = true;
                 break;
             }
-        }    
-        int i=0,c=0;
-        while(c!=4) {
-            if(query[i]==' ')
+        }
+        int i = 0, c = 0;
+        while (c != 4)
+        {
+            if (query[i] == ' ')
                 c++;
             i++;
-            if(i>query.length()) {
+            if (i > query.length())
+            {
                 throw query;
                 return;
-            }   
-        } 
+            }
+        }
 
-        if(query.substr(i,5)!="WHERE")
+        if (query.substr(i, 5) != "WHERE")
             throw query;
 
-        i+=6;
+        i += 6;
         condition = query.substr(i);
-
         // cout << condition << endl;
-
-        // TODO:
-        // if flag == true thn : show all columns
-        // else you should show selected columns.
 
         string colName = colNameOfCondition(condition);
         // cout << colName << endl;
@@ -489,8 +611,8 @@ void SelectQuery(string query , vector<int> v_dataType , vector<string> v_column
         int typecondition = TypeOfCondition(condition);
         // cout << typecondition << endl;
         int col;
-        for(int i=0;i<v_columnName.size();i++){
-            if(v_columnName[i] == colName)
+        for (int i = 0; i < v_columnName.size(); i++) {
+            if (v_columnName[i] == colName)
                 col = i;
         }
 
@@ -498,35 +620,69 @@ void SelectQuery(string query , vector<int> v_dataType , vector<string> v_column
         limit = reverse(limit);
 
         // cout << colName << " "<< typecondition << " " << col <<" "<< limit<< endl;
-        if(typecondition == 0){
-            vector<Node<long long>*> v;
-            if(v_dataType[col] == 0){
-                bt[col].root->FindAllNodeWithAKey(v,stoi(limit));
-            }else if(v_dataType[col] == 1){
-                bt[col].root->FindAllNodeWithAKey(v,string_hash(limit));
-            }else if(v_dataType[col] == 2){
-                bt[col].root->FindAllNodeWithAKey(v,timestamp_hash(limit));
+        if (typecondition == 0)
+        {
+            vector<Node<long long> *> v;
+            if (v_dataType[col] == 0)
+            {
+                bt[col].root->FindAllNodeWithAKey(v, stoi(limit));
+                // cout << v[0]->nextField ->nextField-> data;
+                print_selectQuery(flag,v_dataType,col,v);
             }
-            // for(int i=0;i<v.size();i++){
-            //     Node<long long>* p =v[i];
-            //     while (p->nextField != v[i])
-            //     {
-            //         cout << p->data << " ";
-            //         p = p-> nextField;
-            //     }
-            //     cout << endl;    
-            // }
-        }else if(typecondition == 1){
-
-        }else if(typecondition == 2){
-
+            else if (v_dataType[col] == 1)
+            {
+                bt[col].root->FindAllNodeWithAKey(v, string_hash(limit));
+                print_selectQuery(flag,v_dataType,col,v);
+            }
+            else if (v_dataType[col] == 2)
+            {
+                bt[col].root->FindAllNodeWithAKey(v, timestamp_hash(limit));
+                print_selectQuery(flag,v_dataType,col,v);
+            }
         }
-
-        // search in the bt[i].
-        
-        // then print.
-
-    }catch(...){
+        else if (typecondition == 2)
+        {
+            vector<Node<long long>*> v;
+            if (v_dataType[col] == 0)
+            {
+                bt[col].root->FindAllLessThan(v, stoi(limit));
+                // cout << v[0]->nextField ->nextField-> data;
+                print_selectQuery(flag,v_dataType,col,v);
+            }
+            else if (v_dataType[col] == 1)
+            {
+                bt[col].root->FindAllLessThan(v, string_hash(limit));
+                print_selectQuery(flag,v_dataType,col,v);
+            }
+            else if (v_dataType[col] == 2)
+            {
+                bt[col].root->FindAllLessThan(v, timestamp_hash(limit));
+                print_selectQuery(flag,v_dataType,col,v);
+            }
+        }
+        else if (typecondition == 1)
+        {
+            vector<Node<long long>*> v;
+            if (v_dataType[col] == 0)
+            {
+                bt[col].root->FindAllGreaterThan(v, stoi(limit));
+                // cout << v[0]->nextField ->nextField-> data;
+                print_selectQuery(flag,v_dataType,col,v);
+            }
+            else if (v_dataType[col] == 1)
+            {
+                bt[col].root->FindAllGreaterThan(v, string_hash(limit));
+                print_selectQuery(flag,v_dataType,col,v);
+            }
+            else if (v_dataType[col] == 2)
+            {
+                bt[col].root->FindAllGreaterThan(v, timestamp_hash(limit));
+                print_selectQuery(flag,v_dataType,col,v);
+            }
+        }
+    }
+    catch (...)
+    {
         cout << "Invalid Syntax ERROR! SelectQuery.  status:400 , msg : BadRequest. " << endl;
     }
 }
@@ -536,61 +692,63 @@ void SelectQuery(string query , vector<int> v_dataType , vector<string> v_column
 // DELETE FROM employee WHERE name=="Hamid"
 // UPDATE employee SET ("Hamid",2022/8/7,50000) WHERE name=="Hamid"
 // SELECT {(column1,column2,...) or *} FROM {table name} WHERE condition
-void type_of_query(string str , vector<int>& v_dataType , vector<string>& v_columnName, string& tableName, vector<Btree<long long>>& bt){
-    try{
-        int i=0;
-        string tmp="";
-        while (str[i]!=' ')
+void type_of_query(string str, vector<int> &v_dataType, vector<string> &v_columnName, string &tableName, vector<Btree<long long>> &bt)
+{
+    try
+    {
+        int i = 0;
+        string tmp = "";
+        while (str[i] != ' ')
         {
-            tmp+=str[i];
+            tmp += str[i];
             i++;
         }
-        if(tmp =="CREATE")
-            CreateTableQuery(str,v_dataType,v_columnName,tableName,bt);
-        else if(tmp =="INSERT")
-            InsertIntoQuery(str,v_dataType,v_columnName,tableName,bt);
-        else if(tmp == "DELETE")
-            DeleteFromQuery(str,v_dataType,v_columnName,tableName,bt);
-        else if(tmp == "UPDATE")
-            UpdateQuery(str,v_dataType,v_columnName,tableName,bt);
-        else if(tmp == "SELECT")
-            SelectQuery(str,v_dataType,v_columnName,tableName,bt);
-        else 
+        if (tmp == "CREATE")
+            CreateTableQuery(str, v_dataType, v_columnName, tableName, bt);
+        else if (tmp == "INSERT")
+            InsertIntoQuery(str, v_dataType, v_columnName, tableName, bt);
+        else if (tmp == "DELETE")
+            DeleteFromQuery(str, v_dataType, v_columnName, tableName, bt);
+        else if (tmp == "UPDATE")
+            UpdateQuery(str, v_dataType, v_columnName, tableName, bt);
+        else if (tmp == "SELECT")
+            SelectQuery(str, v_dataType, v_columnName, tableName, bt);
+        else
             throw i;
-    }catch(...){
+    }
+    catch (...)
+    {
         cout << "Syntax ERROR! check your input. typeOfQuery. status : 400 , msg : BadRequest." << endl;
     }
     return;
 }
 
+int main()
+{
+    int number_of_req;
+    cin >> number_of_req;
 
-int main(){
-    // int number_of_req;
-    // cin >> number_of_req;  
-        
-    // string query;
-    // getline(cin , query);
-    
-    
-    // vector<int> v_dataType;          // in this vector we save type od every column.
-    // v_dataType.push_back(0);         // by defult every table has a ID column that is a integer.
-    // vector<string> v_columnName;     // in this vector we save title of every column of table.
-    // v_columnName.push_back("ID");    // by defult every table hase a ID column.
-    // string tableName="";             // in this string we will save name of the table.
-    // vector<Btree<long long>> bt;           // create all btrees that we need to them.
+    string query;
+    getline(cin, query);
 
-    // // query = ignore_space(query);
+    vector<int> v_dataType;       // in this vector we save type od every column.
+    v_dataType.push_back(0);      // by defult every table has a ID column that is a integer.
+    vector<string> v_columnName;  // in this vector we save title of every column of table.
+    v_columnName.push_back("ID"); // by defult every table hase a ID column.
+    string tableName = "";        // in this string we will save name of the table.
+    vector<Btree<long long>> bt;  // create all btrees that we need to them.
 
-    // // type_of_query(query, v_dataType,v_columnName,tableName,bt);
+    // query = ignore_space(query);
 
-    // for(int i=0;i<number_of_req;i++){
-    //     query ="";
-    //     getline(cin, query);
-    //     query = ignore_space(query);
-    //     type_of_query(query, v_dataType,v_columnName,tableName,bt);
-    // }
+    // type_of_query(query, v_dataType,v_columnName,tableName,bt);
 
-
+    for (int i = 0; i < number_of_req; i++)
+    {
+        query = "";
+        getline(cin, query);
+        query = ignore_space(query);
+        type_of_query(query, v_dataType, v_columnName, tableName, bt);
+    }
 
     // for(int j=0;j<v_columnName.size();j++){
     //     cout << v_columnName[j]<<" ";
@@ -601,11 +759,6 @@ int main(){
     // }
     // }
 
-    
-
-    
-    
-        
     // Btree<int> t = Btree<int>(3);
     // Node<int> *p = new Node<int>(2);
     // Node<int>* q=p;
@@ -622,10 +775,10 @@ int main(){
     // t.insert(p);
     // p = new Node<int>(1);
     // t.insert(p);
-    // t.root->traverse(); 
+    // t.root->traverse();
 
     // vector<Node<int>*> v;
-    // t.root->FindAllLessThan(v,8);
+    // t.root->FindAllGreaterThan(v,8);
     // // t.root ->FindAllNodeWithAKey(v,8);
     // cout << endl;
     // for(int i=0;i<v.size();i++){
@@ -644,7 +797,7 @@ int main(){
     // cout << tmp.substr(0,13);
     // type_of_query(tmp);
     // CreateTableQuery(tmp, v_dataType,v_columnName,tableName);
-    
+
     // getline(cin , tmp);
     // InsertIntoQuery(tmp, v_dataType,v_columnName,tableName);
 
@@ -654,5 +807,5 @@ int main(){
 
     // SelectQuery(tmp, v_dataType,v_columnName,tableName);
 
-// ISERT INTO employee   VALUES ("Atena",   2019/7/6,55000)
+    // ISERT INTO employee   VALUES ("Atena",   2019/7/6,55000);
 }

@@ -37,7 +37,7 @@ public:
    int FindBestId();
    void FindAllNodeWithAKey(vector<Node<T>*>& v , T key);
    void FindAllLessThan(vector<Node<T>*>& v, T key);
-   
+   void FindAllGreaterThan(vector<Node<T>*>& v, T key);
 };
 
 template <typename T> class Node{
@@ -282,7 +282,7 @@ void BtreeNode<T>::GetAllDataOfBTree(vector<Node<T>*>& v_nodes){
     childes[j]->traverse();
 }
 
-
+// TODO : i shold change it base on kianazs idea.
 template <typename T>
 int BtreeNode<T>::FindBestId(){
     int index=1;
@@ -325,21 +325,47 @@ void BtreeNode<T>::FindAllNodeWithAKey(vector<Node<T>*>& v , T key){
     return ;
 }
 
+
 template <typename T>
 void BtreeNode<T>::FindAllLessThan(vector<Node<T>*>& v, T key){
     for(int i=0;i<n;i++){
-        if(D[i]!=nullptr && D[i]->data > key){
-            if(!status[i])
+        if(D[i]!=nullptr && D[i]->data <= key){
+            if(!status[i] && D[i]->data != key)
                 v.push_back(D[i]);
             if(childes[i]!=nullptr)    
-                childes[i]-> FindAllLessThan(v,key); 
+                childes[i]-> FindAllLessThan(v,key);       
+        }else{
+            if(i+1<=n){
+                if(childes[i+1]!=nullptr)
+                    childes[i+1]->FindAllLessThan(v,key);    
+            }
+            
+            break;
+        }
+    }
+    return;
+}
+
+
+template <typename T>
+void BtreeNode<T>::FindAllGreaterThan(vector<Node<T>*>& v, T key){
+    for(int i=n-1;i>=0;i--){
+        if(D[i]!=nullptr && D[i]->data >= key){
+            if(D[i]->data!=key && !status[i])
+                v.push_back(D[i]);
 
             if(childes[i+1]!=nullptr)
-                childes[i+1]->FindAllLessThan(v,key);      
+                childes[i+1]->FindAllGreaterThan(v,key);
         }
-
+        else{
+                if(childes[i]!=nullptr)
+                    childes[i]->FindAllGreaterThan(v,key);
+            
+            break;
+        }
     }
 }
+
 template <typename T>
 void BtreeNode<T>::traverse(){
     int j = 0;
