@@ -1,0 +1,10 @@
+# vsc
+.vscode
+
+# ignore history of my vscode.
+.history/
+
+# compiler 
+.BTree
+.hash
+.input
