@@ -14,7 +14,7 @@ public:
    BtreeNode<T> **childes; // pointer to btree node.
    int n;  // number of elemntes that exist in our btree node.
    bool leaf; // a boelean for determine a node is leaf or not.
-   bool *status; // a boolean for determine node deleted or not!
+   // bool *status; // a boolean for determine node deleted or not!
 
    BtreeNode(int tt, bool is_leaf){
        t = tt;
@@ -22,10 +22,10 @@ public:
        n = 0;
        D = new Node<T>*[2 * t -1];
        childes = new BtreeNode<T>*[2 * t];
-       status = new bool[t-1];
-       for(int i=0;i<t;i++){
-           status[i] = false;
-       }
+    //    status = new bool[t-1];
+    //    for(int i=0;i<t;i++){
+    //        status[i] = false;
+    //    }
    }
 
    void insertNonFull(Node<T>* tmp);
@@ -38,18 +38,21 @@ public:
    void FindAllNodeWithAKey(vector<Node<T>*>& v , T key);
    void FindAllLessThan(vector<Node<T>*>& v, T key);
    void FindAllGreaterThan(vector<Node<T>*>& v, T key);
+   void deleteNode(vector<Btree<T>>& bt, int type0fcondition,T key,int col);
 };
 
 template <typename T> class Node{
 public:
     T data;  // check it because it was int!
     Node<T>* nextField;
-    BtreeNode<T>* self;
+    // BtreeNode<T>* self;
+    bool status;
 
     Node(T tmp_data){
         data = tmp_data;
         nextField = nullptr;
-        self = nullptr;
+        // self = nullptr;
+        status = false;
     }
 };
 
@@ -67,7 +70,7 @@ public:
         numberOfDeletedNodes = 0;
     }
     bool insert(Node<T>* data);
-    void deleteNode(Node<T>* p);
+    // void deleteNode(vector<Btree<T>>& bt, int type0fcondition,T key,int col);
 
     ~Btree(){
         delete [] root;
@@ -81,13 +84,13 @@ void BtreeNode<T>::splitChild(BtreeNode<T>* ptr , int tmp){
     BtreeNode<T> *newptr = new BtreeNode<T>(ptr->t, ptr->leaf);
     newptr-> n = t - 1;
 
-    for (int j = 0; j < t - 1; j++){
+    for (int j = 0; j <= t - 2; j++){
     //   newptr->keys[j] = ptr->keys[j + t];
       newptr->D[j] = ptr->D[j+t];
     }  
 
     if (!ptr->leaf) {
-      for (int j = 0; j < t; j++)
+      for (int j = 0; j <= t-1; j++)
         newptr->childes[j] = ptr->childes[j + t];
     }
 
@@ -127,7 +130,7 @@ void BtreeNode<T>::insertNonFull(Node<T>* tmp){
         // for(int i=0;i<n;i++)
         //     cout << keys[i] << " k";
         // cout << endl;    
-        D[i] = new Node<T>(tmp->data);
+        D[i] = tmp; // new Node<T>(tmp->data);
         // set next fieldes
         
     }else{
@@ -181,7 +184,7 @@ bool Btree<T>::insert(Node<T>* data){
 template <typename T>
 bool BtreeNode<T>::is_valid(T key){
     for(int i=0;i<n;i++){
-        if(D[i]->data == key && !status[i])
+        if(D[i]->data == key && !D[i]->status)
             return true;
     }
     for(int i=0;i<n;i++){
@@ -205,8 +208,8 @@ bool BtreeNode<T>::is_valid(T key){
 template <typename T>
 bool BtreeNode<T>::findAndDelete(T key){
     for(int i=0;i<n;i++){
-        if(D[i]->data == key && !status[i]){
-            status[i] = true;
+        if(D[i]->data == key && !D[i]->status){
+            D[i]->status = true;
             return true;
         }    
     }
@@ -229,39 +232,39 @@ bool BtreeNode<T>::findAndDelete(T key){
 
 
 template<typename T>
-void Btree<T>::deleteNode(Node<T>* p){
-    if(numberOfDeletedNodes > numberOfNodes/2){
-        vector<Node<T> *> v_nodes;
-        root->GetAllDataOfBTree(v_nodes);
-        int degree = root->t;
-        // ~Btree();
-        delete [] root;
-        Btree<T> newbtree = Btree<T>(degree);
-        for(int i=0;i<v_nodes.size();i++){
-            if(v_nodes[i]->data!=p->data)
-                newbtree.insert(v_nodes[i]);
-        }
-        // return newbtree;
-        // return newbtree;
-        // delete btree 
-        // make a new btree
-        // if(p->data!=v_nodes[i]->data)
-        // insert to btree
-        //rebuilt_btree();
-        // return;
+void BtreeNode<T>::deleteNode(vector<Btree<T>>& bt, int type0fcondition,T key,int col){
+    vector<Node<long long>*> v;
+    if(type0fcondition == 0){
+        bt[col].root->FindAllNodeWithAKey(v,key);
+    }else if (type0fcondition==2){
+        bt[col].root -> FindAllLessThan(v,key);
+    }else if(type0fcondition== 1){
+        bt[col].root -> FindAllGreaterThan(v,key);
     }
-    else{
-        // cout << "numberofNodes" << numberOfNodes << endl;
-        // cout << "numberofdeleted" << numberOfDeletedNodes << endl;
-        root->findAndDelete(p->data);  // if we had same data we will get help from next fieldes!
-        numberOfDeletedNodes++;
-        // return;
-        // vector<Node<T> *> v_nodes;
-        // root->GetAllDataOfBTree(v_nodes);
-        // cout << endl;
-        // for(int i=0;i<v_nodes.size();i++){
-        //     cout << v_nodes[i]->data << " ";
-        // }
+    if(v.size()==0){
+        cout << "there are not any record with these limitations for delete!" << endl;
+        return;
+    }
+    for(int i=0;i<v.size();i++){
+        Node<long long>*p = v[i];
+        while(p->nextField!=v[i]){
+            p->status = true;
+            p = p->nextField;
+            // TODO : handle idea of deleted id.
+        }
+        p->status = true;
+        bt[i].numberOfDeletedNodes++;
+    }
+    if( bt[col].numberOfNodes>=10 &&  bt[col].numberOfDeletedNodes > bt[col].numberOfNodes/2){
+        for(int i=0;i<bt.size();i++){
+            vector<Node<T>*>v_nodes;
+            bt[i].root->GetAllDataOfBTree(v_nodes);
+            int degree = bt[i].t;
+            bt[i] = Btree<T>(degree);
+            for(int j=0;j<v_nodes.size();j++){
+                bt[i].insert(v_nodes[j]);
+            }
+        }
     }
 };
 
@@ -273,7 +276,7 @@ void BtreeNode<T>::GetAllDataOfBTree(vector<Node<T>*>& v_nodes){
         j=i;  
         if (!leaf)
             childes[i]->traverse();
-        if(! status[i])
+        if(! D[i]->status)
             // cout << " " << D[i]->data;
             v_nodes.push_back(D[i]);
   }
@@ -291,7 +294,7 @@ int BtreeNode<T>::FindBestId(){
         j=i;  
         if (!leaf)
             childes[i]->traverse();
-        if(! status[i])
+        if(! D[i]->status)
             // cout << " " << D[i]->data;
             // v_id.push_back(D[i]->data);
             if(index!=D[i]->data)
@@ -309,7 +312,7 @@ int BtreeNode<T>::FindBestId(){
 template <typename T>
 void BtreeNode<T>::FindAllNodeWithAKey(vector<Node<T>*>& v , T key){
     for(int i=0;i<n;i++){
-        if(D[i]->data == key && !status[i])
+        if(D[i]!=nullptr && D[i]->data == key && !D[i]->status)
             v.push_back(D[i]);
     }
     for(int i=0;i<n;i++){
@@ -330,7 +333,7 @@ template <typename T>
 void BtreeNode<T>::FindAllLessThan(vector<Node<T>*>& v, T key){
     for(int i=0;i<n;i++){
         if(D[i]!=nullptr && D[i]->data <= key){
-            if(!status[i] && D[i]->data != key)
+            if(!D[i]->status && D[i]->data != key)
                 v.push_back(D[i]);
             if(childes[i]!=nullptr)    
                 childes[i]-> FindAllLessThan(v,key);       
@@ -349,9 +352,10 @@ void BtreeNode<T>::FindAllLessThan(vector<Node<T>*>& v, T key){
 
 template <typename T>
 void BtreeNode<T>::FindAllGreaterThan(vector<Node<T>*>& v, T key){
-    for(int i=n-1;i>=0;i--){
+    
+        for(int i=n-1;i>=0;i--){
         if(D[i]!=nullptr && D[i]->data >= key){
-            if(D[i]->data!=key && !status[i])
+            if(D[i]->data!=key && !D[i]->status)
                 v.push_back(D[i]);
 
             if(childes[i+1]!=nullptr)
@@ -360,10 +364,11 @@ void BtreeNode<T>::FindAllGreaterThan(vector<Node<T>*>& v, T key){
         else{
                 if(childes[i]!=nullptr)
                     childes[i]->FindAllGreaterThan(v,key);
-            
+
             break;
         }
     }
+    return;
 }
 
 template <typename T>
@@ -373,7 +378,7 @@ void BtreeNode<T>::traverse(){
         j=i;  
         if (!leaf)
             childes[i]->traverse();
-        if(! status[i])
+        if(! D[i]->status)
             cout << " " << D[i]->data;
   }
   j++; 

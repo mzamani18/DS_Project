@@ -158,6 +158,7 @@ int TypeOfCondition(string condition)
     return 0;
 }
 
+// find the limit number or string or timestamp in conditions.
 string FindLimitation(string condition)
 {
     string res = "";
@@ -170,15 +171,27 @@ string FindLimitation(string condition)
     return res;
 }
 
+// this function is for printing some selected column of table and in this function i check the str in in the selected or not!
+bool exist_col(string str, vector<string> v)
+{
+    for (int i = 0; i < v.size(); i++)
+    {
+        if (str == v[i])
+            return true;
+    }
+    return false;
+}
 
-void print_selectQuery(bool flag, vector<int> v_dataType, int col, vector<Node<long long> *> v){
+// this function is for printing data of selected query.
+void print_selectQuery(bool flag, vector<int> v_dataType, int col, vector<Node<long long> *> v, vector<string> v_columnName, vector<string> selectedCol)
+{
     if (v.size() == 0)
-        {
-            cout << "dose not exist any data by this limitation!" << endl;
-            return;
-        }
-    if (flag){
-
+    {
+        cout << "dose not exist any data by this limitation!" << endl;
+        return;
+    }
+    if (flag)
+    {
         for (int i = 0; i < v.size(); i++)
         {
             Node<long long> *p = v[i];
@@ -229,8 +242,138 @@ void print_selectQuery(bool flag, vector<int> v_dataType, int col, vector<Node<l
             cout << endl;
         }
     }
+    else
+    {
+        for (int i = 0; i < v.size(); i++)
+        {
+            Node<long long> *p = v[i];
+            vector<long long> v_tmp;
+            while (p->nextField != v[i])
+            {
+                v_tmp.push_back(p->data);
+                p = p->nextField;
+            }
+            v_tmp.push_back(p->data); 
+            // for(int i=0;i<v_tmp.size();i++){
+            //     cout << v_tmp[i] <<" ";
+            // }
+            // cout << " col :" << col;
+            int k = 0;
+            for (int j = v_tmp.size() - col; j <= v_tmp.size() - 1; j++)
+            {
+                if (exist_col(v_columnName[k], selectedCol))
+                {
+                    if (v_dataType[k] == 0)
+                    {
+                        cout << v_tmp[j] << "     ";
+                    }
+                    else if (v_dataType[k] == 1)
+                    {
+                        cout << string_hash_inverse(v_tmp[j]) << "     ";
+                    }
+                    else if (v_dataType[k] == 2)
+                    {
+                        cout << timestamp_hash_inverse(v_tmp[j]) << "     ";
+                    }
+                }
+
+                k++;
+            }
+            for (int j = 0; j < v_tmp.size() - col; j++)
+            {
+                if (exist_col(v_columnName[k], selectedCol))
+                {
+                    if (v_dataType[k] == 0)
+                    {
+                        cout << v_tmp[j] << "     ";
+                    }
+                    else if (v_dataType[k] == 1)
+                    {
+                        cout << string_hash_inverse(v_tmp[j]) << "     ";
+                    }
+                    else if (v_dataType[k] == 2)
+                    {
+                        cout << timestamp_hash_inverse(v_tmp[j]) << "     ";
+                    }
+                }
+                k++;
+            }
+            cout << endl;
+        }
+    }
 }
 
+// in this function i will updete record base on some data that i collected them in UpdeteQuery.
+void Update_data(int col, vector<string> v_columnName, vector<int> v_dataType, vector<string> v_allDataForUpdate, vector<Node<long long> *> v)
+{
+    if (v.size() == 0)
+    {
+        cout << "there are not any record with these limitation!" << endl;
+        return;
+    }
+    for (int i = 0; i < v.size(); i++)
+    {
+        Node<long long> *tmp = v[i];
+        int m = col;
+        while (tmp->nextField != v[i])
+        {
+            if (v_columnName[m] != "ID")
+            {
+                long long d = 0;
+                if (v_dataType[m] == 0)
+                {
+                    d = stoi(v_allDataForUpdate[m - 1]);
+                }
+                else if (v_dataType[m] == 1)
+                {
+                    d = string_hash(v_allDataForUpdate[m - 1]);
+                }
+                else if (v_dataType[m] == 2)
+                {
+                    d = timestamp_hash(v_allDataForUpdate[m - 1]);
+                }
+                // cout << "d: " << d << endl;
+                // cout << " before: " << tmp->data << endl;
+                tmp->data = d;
+                // cout << " after : " << tmp->data << endl;
+                tmp = tmp->nextField;
+                if (m == v_dataType.size() - 1)
+                {
+                    m = 0;
+                    // tmp = tmp->nextField;
+                }
+                else
+                {
+                    m++;
+                }
+            }
+            else
+            {
+                tmp = tmp->nextField;
+                m++;
+            }
+        }
+        if (v_columnName[m] != "ID")
+        {
+            long long d = 0;
+            if (v_dataType[m] == 0)
+            {
+                d = stoi(v_allDataForUpdate[m - 1]);
+            }
+            else if (v_dataType[m] == 1)
+            {
+                d = string_hash(v_allDataForUpdate[m - 1]);
+            }
+            else if (v_dataType[m] == 2)
+            {
+                d = timestamp_hash(v_allDataForUpdate[m - 1]);
+            }
+            // cout << " before: " << tmp->data << endl;
+            tmp->data = d;
+            // cout << " after : " << tmp->data << endl;
+        }
+    }
+}
 
 // CREATE TABLE {table name} (column1 type,column2 type,...)
 // CREATE TABLE employee (name string,joinDate timestamp,income int)
@@ -411,6 +554,7 @@ void InsertIntoQuery(string query, vector<int> v_dataType, vector<string> v_colu
         {
             id = bt[0].root->FindBestId();
         }
+        // cout << id << " ";
 
         // cout << "size :"<< v_dataType.size() << endl;
 
@@ -422,7 +566,7 @@ void InsertIntoQuery(string query, vector<int> v_dataType, vector<string> v_colu
         // make all nodes
         Node<long long> *prv = new Node<long long>(id);
         Node<long long> *ID = prv;
-        bt[0].insert(prv);
+        // bt[0].insert(prv);
 
         for (int i = 1; i < v_dataType.size(); i++)
         {
@@ -443,15 +587,27 @@ void InsertIntoQuery(string query, vector<int> v_dataType, vector<string> v_colu
                 data = timestamp_hash(v_allDataToInsert[i - 1]);
                 // cout <<"2    "<< data << endl;
             }
-
             Node<long long> *p = new Node<long long>(data);
             prv->nextField = p;
+            bt[i-1].insert(prv);
+            // cout << prv->nextField->data<<endl;
             prv = p;
             // insert it to our btree.
-            bt[i].insert(p);
             if (i == bt.size() - 1)
+            {
                 p->nextField = ID; // the last one have a pointer to first one.
+                bt[i].insert(p);
+                // cout << p->nextField->data << endl;
+                // cout << p->data << endl;
+            }
+            // cout << p->nextField->data << endl;
         };
+        // prv =ID;
+        // while(prv->nextField!=ID){
+        //     cout << prv->data <<" ";
+        //     prv = prv->nextField;
+        // }
+        // cout << prv->data <<" "<<prv->nextField->data << endl;
     }
     catch (vector<Btree<int>> bt)
     {
@@ -508,20 +664,97 @@ void UpdateQuery(string query, vector<int> v_dataType, vector<string> v_columnNa
             throw query;
 
         i += 7;
-
         condition = str.substr(i);
         // for(int i=0;i<v_allDataForUpdate.size();i++){
         //     cout << v_allDataForUpdate[i] << " ";
         // }
         // cout << endl;
         // cout << "condition : " << condition;
+        string colName = colNameOfCondition(condition);
+        // cout << colName << endl;
+        // we define == = 0 and > = 1 and < = 2.
+        int typecondition = TypeOfCondition(condition);
+        // cout << typecondition << endl;
+        int col;
+        for (int i = 0; i < v_columnName.size(); i++)
+        {
+            if (v_columnName[i] == colName)
+                col = i;
+        }
 
-        // TODO: make condition to a readable condition.
-        // TODO : find the data by that condition and updete it.
+        string limit = FindLimitation(condition);
+        limit = reverse(limit);
+        // cout << colName << " "<< typecondition << " " << col <<" "<< limit<< endl;
+        if (typecondition == 0)
+        {
+            vector<Node<long long> *> v;
+            if (v_dataType[col] == 0)
+            {
+                bt[col].root->FindAllNodeWithAKey(v, stoi(limit));
+                // cout << col << endl;
+                Update_data(col, v_columnName, v_dataType, v_allDataForUpdate, v);
+            }
+            else if (v_dataType[col] == 1)
+            {
+                bt[col].root->FindAllNodeWithAKey(v, string_hash(limit));
+                // cout << v.size() << endl;
+                Update_data(col, v_columnName, v_dataType, v_allDataForUpdate, v);
+            }
+            else if (v_dataType[col] == 2)
+            {
+                bt[col].root->FindAllNodeWithAKey(v, timestamp_hash(limit));
+                // print_selectQuery(flag,v_dataType,col,v,v_columnName,selectedCol);
+                Update_data(col, v_columnName, v_dataType, v_allDataForUpdate, v);
+            }
+        }
+        else if (typecondition == 2)
+        {
+            vector<Node<long long> *> v;
+            if (v_dataType[col] == 0)
+            {
+                bt[col].root->FindAllLessThan(v, stoi(limit));
+                // cout << v[0]->nextField ->nextField-> data;
+                Update_data(col, v_columnName, v_dataType, v_allDataForUpdate, v);
+            }
+            else if (v_dataType[col] == 1)
+            {
+                bt[col].root->FindAllLessThan(v, string_hash(limit));
+                Update_data(col, v_columnName, v_dataType, v_allDataForUpdate, v);
+            }
+            else if (v_dataType[col] == 2)
+            {
+                bt[col].root->FindAllLessThan(v, timestamp_hash(limit));
+                Update_data(col, v_columnName, v_dataType, v_allDataForUpdate, v);
+            }
+        }
+        else if (typecondition == 1)
+        {
+            vector<Node<long long> *> v;
+            if (v_dataType[col] == 0)
+            {
+                bt[col].root->FindAllGreaterThan(v, stoi(limit));
+                // cout << v[0]->nextField ->nextField-> data;
+                Update_data(col, v_columnName, v_dataType, v_allDataForUpdate, v);
+            }
+            else if (v_dataType[col] == 1)
+            {
+                bt[col].root->FindAllGreaterThan(v, string_hash(limit));
+                Update_data(col, v_columnName, v_dataType, v_allDataForUpdate, v);
+            }
+            else if (v_dataType[col] == 2)
+            {
+                bt[col].root->FindAllGreaterThan(v, timestamp_hash(limit));
+                Update_data(col, v_columnName, v_dataType, v_allDataForUpdate, v);
+            }
+        }
+    }
+    catch (string query)
+    {
+        cout << "Invalid Syntax ERROR! UpdateTable  status:400 , msg : BadRequest. " << endl;
     }
     catch (...)
     {
-        cout << "Invalid Syntax ERROR! UpdateTable  status:400 , msg : BadRequest. " << endl;
+        cout << "Unhandeled ERROR! in UpdateTable  status:500 , msg : BadRequest. " << endl;
     }
 }
 
@@ -556,10 +789,80 @@ void DeleteFromQuery(string query, vector<int> v_dataType, vector<string> v_colu
         i += 6;
         condition = query.substr(i);
 
-        // TODO: make condition to a readable condition.
-        // TODO : find the data by that condition and delete it from our btree.
+        // cout << "condition : " << condition << endl;
 
-        // cout << "condition : " << condition;
+        string colName = colNameOfCondition(condition);
+        // cout << colName << endl;
+        // we define == = 0 and > = 1 and < = 2.
+        int typecondition = TypeOfCondition(condition);
+        // cout << typecondition << endl;
+        int col;
+        for (int i = 0; i < v_columnName.size(); i++)
+        {
+            if (v_columnName[i] == colName)
+                col = i;
+        }
+
+        string limit = FindLimitation(condition);
+        limit = reverse(limit);
+        // cout << "col : " << col << "limit: " << limit << endl;
+        // cout << v_dataType[col] << endl;
+        long long key;
+        if (v_dataType[col] == 0)
+        {
+            // bt[col].root->deleteNode(bt,typecondition,stoi(limit),col);
+            key = stoi(limit);
+        }
+        else if (v_dataType[col] == 1)
+        {
+            // bt[col].root->deleteNode(bt,typecondition,string_hash(limit),col);
+            key = string_hash(limit);
+        }
+        else if (v_dataType[col] == 2)
+        {
+            // bt[col].root->deleteNode(bt,typecondition,timestamp_hash(limit),col);
+            key = timestamp_hash(limit);
+        }
+        bt[col].root->deleteNode(bt,typecondition,key,col);
+        // vector<Node<long long>*> v;
+        // if(type0fcondition == 0){
+        //     bt[col].root->FindAllNodeWithAKey(v,key);
+        // }else if (type0fcondition==2){
+        //     bt[col].root -> FindAllLessThan(v,key);
+        // }else if(type0fcondition== 1){
+        //     bt[col].root -> FindAllGreaterThan(v,key);
+        // }
+        // vector<Node<long long> *> v;
+        // if (typecondition == 0)
+        // {
+        //     bt[col].root->FindAllNodeWithAKey(v, key);
+        // }
+        // else if (typecondition == 1)
+        // {
+        //     bt[col].root->FindAllGreaterThan(v, key);
+        // }
+        // else if (typecondition == 2)
+        // {
+        //     bt[col].root->FindAllLessThan(v, key);
+        // }
+        // for(int i=0;i<v.size();i++){
+        //     cout << v[i]->nextField->status <<" ";
+        // }
+        // if (v.size() == 0)
+        // {
+        //     cout << "there are not any record with these limitations!" << endl;
+        //     return;
+        // }
+        // for(int i=0;i<v.size();i++){
+        //     Node<long long>* tmp = v[i];
+        //     while(tmp->nextField != v[i]){
+        //         tmp -> status = true;
+        //         tmp = tmp->nextField;
+        //         // TODO : handle idea of deleted id.
+        //     }
+        //     tmp->status = true;
+        //     // bt[i].numberOfDeletedNodes++;
+        // }
     }
     catch (...)
     {
@@ -570,8 +873,10 @@ void DeleteFromQuery(string query, vector<int> v_dataType, vector<string> v_colu
 // SELECT {(column1,column2,...) or *} FROM {table name} WHERE condition
 // SELECT * FROM employee WHERE income>45000
 // SELECT (name,income) FROM employee WHERE income>45000
-void SelectQuery(string query, vector<int> v_dataType, vector<string> v_columnName, string tableName, vector<Btree<long long>> &bt){
-    try { 
+void SelectQuery(string query, vector<int> v_dataType, vector<string> v_columnName, string tableName, vector<Btree<long long>> &bt)
+{
+    try
+    {
         bool flag = false;
         string condition = "";
         string tmp = query.substr(0, 7);
@@ -579,12 +884,45 @@ void SelectQuery(string query, vector<int> v_dataType, vector<string> v_columnNa
         if (tmp != "SELECT ")
             throw query;
 
-        for (int i = 0; i < query.length(); i++){
-            if (query[i] == '*'){
+        for (int i = 0; i < query.length(); i++)
+        {
+            if (query[i] == '*')
+            {
                 flag = true;
                 break;
             }
         }
+        vector<string> selectedCol;
+        if (!flag)
+        {
+            int i = 0;
+            for (int j = 0; j < query.length(); j++)
+            {
+                if (query[j] == '(')
+                {
+                    i = j;
+                    break;
+                }
+            }
+            while (i < query.length())
+            {
+                i++;
+                string t = "";
+                while (query[i] != ',' && query[i] != ')')
+                {
+                    t += query[i];
+                    i++;
+                }
+                selectedCol.push_back(t);
+                if (query[i] == ')')
+                    break;
+            }
+        }
+        // for(int i=0;i<selectedCol.size();i++){
+        //     cout << selectedCol[i].length() << " ";
+        // }
+        // cout << endl;
+        // return;
         int i = 0, c = 0;
         while (c != 4)
         {
@@ -611,7 +949,8 @@ void SelectQuery(string query, vector<int> v_dataType, vector<string> v_columnNa
         int typecondition = TypeOfCondition(condition);
         // cout << typecondition << endl;
         int col;
-        for (int i = 0; i < v_columnName.size(); i++) {
+        for (int i = 0; i < v_columnName.size(); i++)
+        {
             if (v_columnName[i] == colName)
                 col = i;
         }
@@ -627,57 +966,57 @@ void SelectQuery(string query, vector<int> v_dataType, vector<string> v_columnNa
             {
                 bt[col].root->FindAllNodeWithAKey(v, stoi(limit));
                 // cout << v[0]->nextField ->nextField-> data;
-                print_selectQuery(flag,v_dataType,col,v);
+                print_selectQuery(flag, v_dataType, col, v, v_columnName, selectedCol);
             }
             else if (v_dataType[col] == 1)
             {
                 bt[col].root->FindAllNodeWithAKey(v, string_hash(limit));
-                print_selectQuery(flag,v_dataType,col,v);
+                print_selectQuery(flag, v_dataType, col, v, v_columnName, selectedCol);
             }
             else if (v_dataType[col] == 2)
             {
                 bt[col].root->FindAllNodeWithAKey(v, timestamp_hash(limit));
-                print_selectQuery(flag,v_dataType,col,v);
+                print_selectQuery(flag, v_dataType, col, v, v_columnName, selectedCol);
             }
         }
         else if (typecondition == 2)
         {
-            vector<Node<long long>*> v;
+            vector<Node<long long> *> v;
             if (v_dataType[col] == 0)
             {
                 bt[col].root->FindAllLessThan(v, stoi(limit));
                 // cout << v[0]->nextField ->nextField-> data;
-                print_selectQuery(flag,v_dataType,col,v);
+                print_selectQuery(flag, v_dataType, col, v, v_columnName, selectedCol);
             }
             else if (v_dataType[col] == 1)
             {
                 bt[col].root->FindAllLessThan(v, string_hash(limit));
-                print_selectQuery(flag,v_dataType,col,v);
+                print_selectQuery(flag, v_dataType, col, v, v_columnName, selectedCol);
             }
             else if (v_dataType[col] == 2)
             {
                 bt[col].root->FindAllLessThan(v, timestamp_hash(limit));
-                print_selectQuery(flag,v_dataType,col,v);
+                print_selectQuery(flag, v_dataType, col, v, v_columnName, selectedCol);
             }
         }
         else if (typecondition == 1)
         {
-            vector<Node<long long>*> v;
+            vector<Node<long long> *> v;
             if (v_dataType[col] == 0)
             {
                 bt[col].root->FindAllGreaterThan(v, stoi(limit));
-                // cout << v[0]->nextField ->nextField-> data;
-                print_selectQuery(flag,v_dataType,col,v);
+                cout << v.size() << endl;
+                print_selectQuery(flag,v_dataType,col,v,v_columnName,selectedCol);
             }
             else if (v_dataType[col] == 1)
             {
                 bt[col].root->FindAllGreaterThan(v, string_hash(limit));
-                print_selectQuery(flag,v_dataType,col,v);
+                print_selectQuery(flag, v_dataType, col, v, v_columnName, selectedCol);
             }
             else if (v_dataType[col] == 2)
             {
                 bt[col].root->FindAllGreaterThan(v, timestamp_hash(limit));
-                print_selectQuery(flag,v_dataType,col,v);
+                print_selectQuery(flag, v_dataType, col, v, v_columnName, selectedCol);
             }
         }
     }
@@ -761,7 +1100,7 @@ int main()
 
     // Btree<int> t = Btree<int>(3);
     // Node<int> *p = new Node<int>(2);
-    // Node<int>* q=p;
+    // // Node<int>* q=p;
     // t.insert(p);
     // p = new Node<int>(8);
     // t.insert(p);
@@ -775,12 +1114,12 @@ int main()
     // t.insert(p);
     // p = new Node<int>(1);
     // t.insert(p);
-    // t.root->traverse();
+    // // t.root->traverse();
 
     // vector<Node<int>*> v;
-    // t.root->FindAllGreaterThan(v,8);
-    // // t.root ->FindAllNodeWithAKey(v,8);
-    // cout << endl;
+    // t.root->FindAllGreaterThan(v,0);
+    // // // t.root ->FindAllNodeWithAKey(v,45);
+    // // // cout << endl;
     // for(int i=0;i<v.size();i++){
     //     cout << v[i]->data << " ";
     // }
