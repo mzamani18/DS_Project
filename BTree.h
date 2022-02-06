@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <math.h>
+#include<unordered_map>
 
 using namespace std;
 
@@ -22,12 +24,23 @@ public:
        n = 0;
        D = new Node<T>*[2 * t -1];
        childes = new BtreeNode<T>*[2 * t];
-    //    status = new bool[t-1];
-    //    for(int i=0;i<t;i++){
-    //        status[i] = false;
-    //    }
+       for(int i=0;i<2*t-1;i++){
+           D[i] = nullptr;
+       }
+       for(int i=0;i<2*t;i++){
+           childes[i] = nullptr;
+       }
+    
    }
 
+    ~BtreeNode() {
+        for(int i-0;i<2*t-1;i++){
+            delete D[i];
+        }
+        for(int i=0;i<2*t;i++){
+            delete childes[i];
+        }
+    }
    void insertNonFull(Node<T>* tmp);
    void splitChild(BtreeNode<T>* ptr , int tmp);
    void traverse();
@@ -38,12 +51,12 @@ public:
    void FindAllNodeWithAKey(vector<Node<T>*>& v , T key);
    void FindAllLessThan(vector<Node<T>*>& v, T key);
    void FindAllGreaterThan(vector<Node<T>*>& v, T key);
-   void deleteNode(vector<Btree<T>>& bt, int type0fcondition,T key,int col);
+   void deleteNode(vector<vector<Btree<T> >>& bt, int type0fcondition,T key,int col,unordered_map<string,int> map,string tableName);
 };
 
 template <typename T> class Node{
 public:
-    T data;  // check it because it was int!
+    T data;  
     Node<T>* nextField;
     // BtreeNode<T>* self;
     bool status;
@@ -70,11 +83,7 @@ public:
         numberOfDeletedNodes = 0;
     }
     bool insert(Node<T>* data);
-    // void deleteNode(vector<Btree<T>>& bt, int type0fcondition,T key,int col);
-
-    ~Btree(){
-        delete [] root;
-    }
+    
 };
 
 
@@ -85,7 +94,6 @@ void BtreeNode<T>::splitChild(BtreeNode<T>* ptr , int tmp){
     newptr-> n = t - 1;
 
     for (int j = 0; j <= t - 2; j++){
-    //   newptr->keys[j] = ptr->keys[j + t];
       newptr->D[j] = ptr->D[j+t];
     }  
 
@@ -101,11 +109,9 @@ void BtreeNode<T>::splitChild(BtreeNode<T>* ptr , int tmp){
     childes[tmp + 1] = newptr;
 
     for (int j = n - 1; j >= tmp; j--){
-    //   keys[j + 1] = keys[j];
       D[j+1] = D[j];
     }  
-
-    // keys[tmp] = ptr->keys[t - 1];
+   
     D[tmp] = ptr -> D[t-1];
     n++;
 }
@@ -129,7 +135,10 @@ void BtreeNode<T>::insertNonFull(Node<T>* tmp){
         // cout << keys[1] << endl;
         // for(int i=0;i<n;i++)
         //     cout << keys[i] << " k";
-        // cout << endl;    
+        // cout << endl; 
+        // Node<T> *p = new Node<T>(tmp->data);
+        // if(tmp->nextField!=nullptr)
+        //     p->nextField = tmp->nextField;
         D[i] = tmp; // new Node<T>(tmp->data);
         // set next fieldes
         
@@ -232,17 +241,17 @@ bool BtreeNode<T>::findAndDelete(T key){
 
 
 template<typename T>
-void BtreeNode<T>::deleteNode(vector<Btree<T>>& bt, int type0fcondition,T key,int col){
+void BtreeNode<T>::deleteNode(vector<vector<Btree<T> >>& bt, int type0fcondition,T key,int col,unordered_map<string,int> map,string tableName){
     vector<Node<long long>*> v;
-    if(type0fcondition == 0){
-        bt[col].root->FindAllNodeWithAKey(v,key);
+    if(type0fcondition == 0){;
+        bt[map[tableName]][col].root->FindAllNodeWithAKey(v,key);
     }else if (type0fcondition==2){
-        bt[col].root -> FindAllLessThan(v,key);
+        bt[map[tableName]][col].root -> FindAllLessThan(v,key);
     }else if(type0fcondition== 1){
-        bt[col].root -> FindAllGreaterThan(v,key);
+        bt[map[tableName]][col].root -> FindAllGreaterThan(v,key);
     }
     if(v.size()==0){
-        cout << "there are not any record with these limitations for delete!" << endl;
+        // cout << "there are not any record with these limitations for delete!" << endl;
         return;
     }
     for(int i=0;i<v.size();i++){
@@ -250,19 +259,20 @@ void BtreeNode<T>::deleteNode(vector<Btree<T>>& bt, int type0fcondition,T key,in
         while(p->nextField!=v[i]){
             p->status = true;
             p = p->nextField;
-            // TODO : handle idea of deleted id.
         }
         p->status = true;
-        bt[i].numberOfDeletedNodes++;
+        bt[map[tableName]][i].numberOfDeletedNodes++;
     }
-    if( bt[col].numberOfNodes>=10 &&  bt[col].numberOfDeletedNodes > bt[col].numberOfNodes/2){
+
+    if( bt[map[tableName]][col].numberOfNodes>=50 &&  bt[map[tableName]][col].numberOfDeletedNodes > bt[map[tableName]][col].numberOfNodes/2){
         for(int i=0;i<bt.size();i++){
             vector<Node<T>*>v_nodes;
-            bt[i].root->GetAllDataOfBTree(v_nodes);
-            int degree = bt[i].t;
-            bt[i] = Btree<T>(degree);
+            bt[map[tableName]][i].root->GetAllDataOfBTree(v_nodes);
+            delete bt[map[tableName]][i].root;
+            int degree = bt[map[tableName]][i].t;
+            bt[map[tableName]][i] = Btree<T>(degree);
             for(int j=0;j<v_nodes.size();j++){
-                bt[i].insert(v_nodes[j]);
+                bt[map[tableName]][i].insert(v_nodes[j]);
             }
         }
     }
@@ -275,38 +285,26 @@ void BtreeNode<T>::GetAllDataOfBTree(vector<Node<T>*>& v_nodes){
     for (int i = 0; i < n; i++) {
         j=i;  
         if (!leaf)
-            childes[i]->traverse();
+            childes[i]->GetAllDataOfBTree(v_nodes);
         if(! D[i]->status)
             // cout << " " << D[i]->data;
             v_nodes.push_back(D[i]);
   }
   j++; 
   if (!leaf)
-    childes[j]->traverse();
+    childes[j]->GetAllDataOfBTree(v_nodes);
 }
 
-// TODO : i shold change it base on kianazs idea.
+// TODO !
 template <typename T>
-int BtreeNode<T>::FindBestId(){
-    int index=1;
-    int j = 0;
-    for (int i = 0; i < n; i++) {
-        j=i;  
-        if (!leaf)
-            childes[i]->traverse();
-        if(! D[i]->status)
-            // cout << " " << D[i]->data;
-            // v_id.push_back(D[i]->data);
-            if(index!=D[i]->data)
-                return index;
-            else{
-                index++;
-            }    
-  }
-  j++; 
-  if (!leaf)
-    childes[j]->traverse();
-  return index;  
+int BtreeNode<T>::FindBestId(){  
+    vector<Node<T>*> v;
+    GetAllDataOfBTree(v);
+    for(int i=0;i<v.size();i++){
+        if(v[i]->data!=i+1 || v[i]->status)
+            return i+1;
+    }
+    return v.size()+1;
 }
 
 template <typename T>
@@ -331,61 +329,56 @@ void BtreeNode<T>::FindAllNodeWithAKey(vector<Node<T>*>& v , T key){
 
 template <typename T>
 void BtreeNode<T>::FindAllLessThan(vector<Node<T>*>& v, T key){
-    for(int i=0;i<n;i++){
-        if(D[i]!=nullptr && D[i]->data <= key){
-            if(!D[i]->status && D[i]->data != key)
-                v.push_back(D[i]);
-            if(childes[i]!=nullptr)    
-                childes[i]-> FindAllLessThan(v,key);       
-        }else{
-            if(i+1<=n){
-                if(childes[i+1]!=nullptr)
-                    childes[i+1]->FindAllLessThan(v,key);    
-            }
-            
-            break;
-        }
-    }
-    return;
+    int j = 0;
+    for (int i = 0; i < n; i++) {
+        j=i;  
+        if (!leaf)
+            childes[i]->FindAllLessThan(v,key);
+        if(! D[i]->status && D[i]->data < key)
+            v.push_back(D[i]);
+            // cout << " " << D[i]->data;
+        if(D[i]->data > key)   
+            return; 
+  }
+  j++; 
+  if (!leaf)
+    childes[j]->FindAllLessThan(v,key);
 }
 
 
 template <typename T>
 void BtreeNode<T>::FindAllGreaterThan(vector<Node<T>*>& v, T key){
-    
-        for(int i=n-1;i>=0;i--){
-        if(D[i]!=nullptr && D[i]->data >= key){
-            if(D[i]->data!=key && !D[i]->status)
-                v.push_back(D[i]);
-
-            if(childes[i+1]!=nullptr)
-                childes[i+1]->FindAllGreaterThan(v,key);
-        }
-        else{
-                if(childes[i]!=nullptr)
-                    childes[i]->FindAllGreaterThan(v,key);
-
-            break;
-        }
-    }
-    return;
-}
-
-template <typename T>
-void BtreeNode<T>::traverse(){
     int j = 0;
-    for (int i = 0; i < n; i++) {
+    for (int i = n-1; i >=0 ; i--) {
         j=i;  
         if (!leaf)
-            childes[i]->traverse();
-        if(! D[i]->status)
-            cout << " " << D[i]->data;
+            childes[i+1]->FindAllGreaterThan(v,key);
+        if(! D[i]->status && D[i]->data > key )
+            v.push_back(D[i]);
+        else if(D[i]->data<key)
+            return;    
   }
-  j++; 
   if (!leaf)
-    childes[j]->traverse();
-};
+    childes[j]->FindAllGreaterThan(v,key);
+   
+}
 
+// template <typename T>
+// void BtreeNode<T>::traverse(){
+//     int j = 0;
+//     for (int i = 0; i < n; i++) {
+//         j=i;  
+//         if (!leaf)
+//             childes[i]->traverse();
+//         if(! D[i]->status )
+//             cout << " " << D[i]->data;
+//     }        
+//   j++; 
+//   if (!leaf)
+//     childes[j]->traverse();
+// };
+
+// test :
 // int main(){
 //     // 1. we get query of making a table
 //     // 2. we shold requgnize types and every field name
@@ -402,19 +395,18 @@ void BtreeNode<T>::traverse(){
     // p = new Node<int>(11);
     // t.insert(p);
     // t.root->traverse();
-    
-//     cout << endl;
-//     t.deleteNode(q);
-//     t.root->traverse();
-//     cout << endl << "test " << t.root->is_valid(100);
-//     // t.insert(9);
-//     // t.insert(10);
-//     // t.insert(11);
-//     // t.insert(15);
-//     // t.insert(16);
-//     // t.insert(17);
-//     // t.insert(18);
-//     // t.insert(20);
-//     // t.insert(23);
-//     // t.traverse();
-// };
+    // cout << endl;
+    // t.deleteNode(q);
+    // t.root->traverse();
+    // cout << endl << "test " << t.root->is_valid(100);
+    // t.insert(9);
+    // t.insert(10);
+    // t.insert(11);
+    // t.insert(15);
+    // t.insert(16);
+    // t.insert(17);
+    // t.insert(18);
+    // t.insert(20);
+    // t.insert(23);
+    // t.traverse();
+// }; 
