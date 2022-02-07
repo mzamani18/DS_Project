@@ -204,9 +204,7 @@ void print_selectQuery(bool flag, vector<int> v_dataType, int col, vector<Node<l
             Id.push_back(tmp->data);
         }
         int i, j; 
-        for (i = 0; i < v.size(); i++) {    
-      
-            // Last i elements are already in place 
+        for (i = 0; i < v.size(); i++) {     
             for (j = 0; j < v.size()-i-1; j++) {
                 if (Id[j] > Id[j+1]){ 
                     swap(Id[j], Id[j+1]); 
@@ -224,26 +222,20 @@ void print_selectQuery(bool flag, vector<int> v_dataType, int col, vector<Node<l
                 p = p->nextField;
             }
             v_tmp.push_back(p->data);
-            // for(int i=0;i<v_tmp.size();i++){
-            //     cout << v_tmp[i] <<" ";
-            // }
-            // cout << " col :" << col;
+            
             int k = 0;
             for (int j = v_tmp.size() - col; j <= v_tmp.size() - 1; j++)
             {
                 if (v_dataType[k] == 0)
                 {
-                    // cout << v_tmp[j] << " ";
                     result.push_back(to_string(v_tmp[j]));
                 }
                 else if (v_dataType[k] == 1)
                 {
-                    // cout << string_hash_inverse(v_tmp[j]) << " ";
                     result.push_back(string_hash_inverse(v_tmp[j]));
                 }
                 else if (v_dataType[k] == 2)
                 {
-                    // cout << timestamp_hash_inverse(v_tmp[j]) << " ";
                     result.push_back(timestamp_hash_inverse(v_tmp[j]));
                 }
                 k++;
@@ -252,22 +244,18 @@ void print_selectQuery(bool flag, vector<int> v_dataType, int col, vector<Node<l
             {
                 if (v_dataType[k] == 0)
                 {
-                    // cout << v_tmp[j] << " ";
                     result.push_back(to_string(v_tmp[j]));
                 }
                 else if (v_dataType[k] == 1)
                 {
-                    // cout << string_hash_inverse(v_tmp[j]) << " ";
                     result.push_back(string_hash_inverse(v_tmp[j]));
                 }
                 else if (v_dataType[k] == 2)
                 {
-                    // cout << timestamp_hash_inverse(v_tmp[j]) << " ";
                     result.push_back(timestamp_hash_inverse(v_tmp[j]));
                 }
                 k++;
             }
-            // cout << endl;
             result.push_back("newline");
         }
     }
@@ -389,15 +377,12 @@ void Update_data(int col, vector<string> v_columnName, vector<int> v_dataType, v
                 {
                     d = timestamp_hash(v_allDataForUpdate[m - 1]);
                 }
-                // cout << "d: " << d << endl;
-                // cout << " before: " << tmp->data << endl;
+                
                 tmp->data = d;
-                // cout << " after : " << tmp->data << endl;
                 tmp = tmp->nextField;
                 if (m == v_dataType.size() - 1)
                 {
                     m = 0;
-                    // tmp = tmp->nextField;
                 }
                 else
                 {
@@ -449,12 +434,9 @@ void CreateTableQuery(string query, vector<vector<int>> &v_dataType, vector<vect
             tableName += query[i];
             i++;
         }
-        // cout << " " << tableName << " " << endl;
         map[tableName] = num_of_tree;
-        // cout << map[tableName] << endl;
         num_of_tree++;
-        // cout << tableName << endl;
-        // i++;
+        
 
         string str = "";
         for (int j = 0; j < query.length(); j++)
@@ -465,7 +447,6 @@ void CreateTableQuery(string query, vector<vector<int>> &v_dataType, vector<vect
                 break;
             }
         }
-        // cout << str << endl;
         vector<string> tmp_name;
         vector<int> tmp_type;
         tmp_name.push_back("ID");
@@ -480,7 +461,6 @@ void CreateTableQuery(string query, vector<vector<int>> &v_dataType, vector<vect
                 t += str[i];
                 i++;
             }
-            // cout << "t: "<< t;
             tmp_name.push_back(t);
             t = "";
             i++;
@@ -498,7 +478,6 @@ void CreateTableQuery(string query, vector<vector<int>> &v_dataType, vector<vect
         vector<Btree<long long>> v_b;
         for (int i = 0; i < v_columnName[map[tableName]].size(); i++)
         {
-            // bt[map[tableName]].push_back(Btree<long long>(3));
             v_b.push_back(Btree<long long>(3));
         };
         bt.push_back(v_b);
@@ -523,7 +502,7 @@ void InsertIntoQuery(string query, vector<vector<int>> v_dataType, vector<vector
 
         vector<string> v_allDataToInsert;
         string tmp = query.substr(0, 12);
-        // cout << tmp;
+        
         if (tmp != "INSERT INTO ")
             throw query;
         string tableName="";
@@ -532,7 +511,6 @@ void InsertIntoQuery(string query, vector<vector<int>> v_dataType, vector<vector
             tableName+=query[l];
             l++;
         }
-        // cout << " " << tableName << " " << endl;
         string str;
         for (int i = 0; i < query.length(); i++)
         {
@@ -556,30 +534,6 @@ void InsertIntoQuery(string query, vector<vector<int>> v_dataType, vector<vector
             if (str[i] == ')')
                 break;
         }
-        // for(int i=0;i<v_allDataToInsert.size();i++){
-        //     cout << v_allDataToInsert[i] << " ";
-        // }
-        // cout << endl;
-
-        // in this section i should check validation type
-        for (int i = 1; i < v_dataType[map[tableName]].size(); i++)
-        {
-            if (v_dataType[map[tableName]][i] == 2)
-            {
-                if (!valid_timestamp(v_allDataToInsert[i - 1]))
-                {
-                    throw v_allDataToInsert;
-                }
-            }
-            else if (v_dataType[map[tableName]][i] == 1)
-            {
-                if (!valid_string(v_allDataToInsert[i - 1]))
-                {
-                    throw v_allDataToInsert;
-                }
-            }
-        }
-
         // find best id
         int id=0;
         if (bt[map[tableName]][0].root == nullptr)
@@ -594,7 +548,6 @@ void InsertIntoQuery(string query, vector<vector<int>> v_dataType, vector<vector
         // make all nodes
         Node<long long> *prv = new Node<long long>(id);
         Node<long long> *ID = prv;
-        // bt[0].insert(prv);
 
         for (int i = 1; i < v_dataType[map[tableName]].size(); i++)
         {
@@ -603,30 +556,24 @@ void InsertIntoQuery(string query, vector<vector<int>> v_dataType, vector<vector
             if (v_dataType[map[tableName]][i] == 0)
             {
                 data = stoi(v_allDataToInsert[i - 1]);
-                // cout << "0      "<< data << endl;
             }
             else if (v_dataType[map[tableName]][i] == 1)
             {
                 data = string_hash(v_allDataToInsert[i - 1]);
-                // cout <<"1    " << data << endl;
             }
             else if (v_dataType[map[tableName]][i] == 2)
             {
                 data = timestamp_hash(v_allDataToInsert[i - 1]);
-                // cout <<"2    "<< data << endl;
             }
             Node<long long> *p = new Node<long long>(data);
             prv->nextField = p;
             bt[map[tableName]][i-1].insert(prv);
-            // cout << prv->nextField->data<<endl;
             prv = p;
             // insert it to our btree.
             if (i == bt[map[tableName]].size() - 1)
             {
                 p->nextField = ID; // the last one have a pointer to first one.
                 bt[map[tableName]][i].insert(p);
-                // cout << p->nextField->data << endl;
-                // cout << p->data << endl;
             }
             // cout << p->nextField->data << endl;
         };
@@ -693,13 +640,8 @@ void UpdateQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
 
         i += 7;
         condition = str.substr(i);
-        // for(int i=0;i<v_allDataForUpdate.size();i++){
-        //     cout << v_allDataForUpdate[i] << " ";
-        // }
-        // cout << endl;
-        // cout << "condition : " << condition;
+       
         string colName = colNameOfCondition(condition);
-        // cout << colName << endl;
         // we define == = 0 and > = 1 and < = 2.
         int typecondition = TypeOfCondition(condition);
         // cout << typecondition << endl;
@@ -712,7 +654,6 @@ void UpdateQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
 
         string limit = FindLimitation(condition);
         limit = reverse(limit);
-        // cout << colName << " "<< typecondition << " " << col <<" "<< limit<< endl;
         if (typecondition == 0)
         {
             vector<Node<long long> *> v;
@@ -794,7 +735,7 @@ void DeleteFromQuery(string query, vector<vector<int>> v_dataType, vector<vector
     {
         string condition = "";
         string tmp = query.substr(0, 12);
-        // cout << tmp;
+
         if (tmp != "DELETE FROM ")
             throw query;
         int l = 12;
@@ -803,7 +744,6 @@ void DeleteFromQuery(string query, vector<vector<int>> v_dataType, vector<vector
             tableName += query[l];
             l++;
         }
-        // cout << " " << tableName << " " << tableName.length()<<endl;
         int i = 0, c = 0;
         while (c != 3)
         {
@@ -816,14 +756,11 @@ void DeleteFromQuery(string query, vector<vector<int>> v_dataType, vector<vector
                 return;
             }
         }
-        // cout << "where : " << query.substr(i,5) ;
         if (query.substr(i, 5) != "WHERE")
             throw query;
 
         i += 6;
         condition = query.substr(i);
-
-        // cout << "condition : " << condition << endl;
 
         string colName = colNameOfCondition(condition);
         // cout << colName << endl;
@@ -839,47 +776,20 @@ void DeleteFromQuery(string query, vector<vector<int>> v_dataType, vector<vector
 
         string limit = FindLimitation(condition);
         limit = reverse(limit);
-        // cout << "col : " << col << "limit: " << limit << endl;
-        // cout << v_dataType[col] << endl;
         long long key = 0;
         if (v_dataType[map[tableName]][col] == 0)
         {
-            // bt[col].root->deleteNode(bt,typecondition,stoi(limit),col);
             key = stoi(limit);
         }
         else if (v_dataType[map[tableName]][col] == 1)
         {
-            // bt[col].root->deleteNode(bt,typecondition,string_hash(limit),col);
             key = string_hash(limit);
         }
         else if (v_dataType[map[tableName]][col] == 2)
         {
-            // bt[col].root->deleteNode(bt,typecondition,timestamp_hash(limit),col);
             key = timestamp_hash(limit);
         }
         bt[map[tableName]][col].root->deleteNode(bt,typecondition,key,col,map,tableName);
-    //     vector<Node<long long>*> v;
-    // cout << map[tableName] << " ";
-    // if(typecondition == 0){;
-    //     bt[map[tableName]][col].root->FindAllNodeWithAKey(v,key);
-    // }else if (typecondition==2){
-    //     bt[map[tableName]][col].root -> FindAllLessThan(v,key);
-    // }else if(typecondition== 1){
-    //     bt[map[tableName]][col].root -> FindAllGreaterThan(v,key);
-    // }
-    // if(v.size()==0){
-    //     // cout << "there are not any record with these limitations for delete!" << endl;
-    //     return;
-    // }
-    // for(int i=0;i<v.size();i++){
-    //     Node<long long>*p = v[i];
-    //     while(p->nextField!=v[i]){
-    //         p->status = true;
-    //         p = p->nextField;
-    //     }
-    //     p->status = true;
-    //     bt[map[tableName]][i].numberOfDeletedNodes++;
-    // }
         
     }
     catch (...)
@@ -936,11 +846,6 @@ void SelectQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
                     break;
             }
         }
-        // for(int i=0;i<selectedCol.size();i++){
-        //     cout << selectedCol[i].length() << " ";
-        // }
-        // cout << endl;
-        // return;
         int i = 0, c = 0;
         while (c != 4)
         {
@@ -960,16 +865,13 @@ void SelectQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
             l--;
         }
         tableName = reverse(tableName);
-        // cout << " " << tableName << " " << endl;
         if (query.substr(i, 5) != "WHERE")
             throw query;
 
         i += 6;
         condition = query.substr(i);
-        // cout << condition << endl;
 
         string colName = colNameOfCondition(condition);
-        // cout << colName << endl;
         // we define == = 0 and > = 1 and < = 2.
         int typecondition = TypeOfCondition(condition);
         // cout << typecondition << endl;
@@ -983,7 +885,6 @@ void SelectQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
         string limit = FindLimitation(condition);
         limit = reverse(limit);
 
-        // cout << colName << " "<< typecondition << " " << col <<" "<< limit<< endl;
         if (typecondition == 0)
         {
             vector<Node<long long> *> v;
@@ -1030,9 +931,6 @@ void SelectQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
             if (v_dataType[map[tableName]][col] == 0)
             {
                 bt[map[tableName]][col].root->FindAllGreaterThan(v, stoi(limit));
-                // cout << v.size() << endl;
-                // bt[col].root->traverse();
-                // cout << endl;
                 print_selectQuery(flag,v_dataType[map[tableName]],col,v,v_columnName[map[tableName]],selectedCol,result);
             }
             else if (v_dataType[map[tableName]][col] == 1)
@@ -1107,10 +1005,7 @@ int main()
 
     cin.ignore();
     int num_of_tree = 0;
-    
-    // query = ignore_space(query);
-
-    // type_of_query(query, v_dataType,v_columnName,tableName,bt);
+   
 
     for (int i = 0; i < number_of_req; i++)
     {
@@ -1125,6 +1020,7 @@ int main()
         }
         else cout << endl;
     }
+}
 
     // Btree<int> t = Btree<int>(3);
     // Node<int> *p = new Node<int>(2);
@@ -1177,7 +1073,6 @@ int main()
     // SelectQuery(tmp, v_dataType,v_columnName,tableName);
 
     // ISERT INTO employee   VALUES ("Atena",   2019/7/6,55000);
-}
 
 // test case :
 /*

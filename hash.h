@@ -4,12 +4,16 @@
 using namespace std;
 
 // we asuume that we have small letters.
-string letter = "abcdefghijklmnopqrstuvwxyzA";
+string letter = "abcdefghijklmnopqrstuvwxyz0123456789A";
 
 // get the position of the letter in letter.
 int ASCII(char tmp)
 {
-    return int(tmp) - 96;
+    for(int i=0;i<letter.length();i++){
+        if(letter[i]==tmp)
+            return i+1;
+    }
+    return 0;
 }
 
 // this function converts a string to int.
@@ -143,20 +147,20 @@ string string_hash_inverse(long long hashed)
 // int main()
 // {
 
-//     // test timestamp hashing:
-//     string time;
-//     cin >> time;
-//     long long tmp  = timestamp_hash(time);
-//     cout << timestamp_hash(time);
-//     cout << timestamp_hash_inverse(tmp);
+// //     // test timestamp hashing:
+// //     string time;
+// //     cin >> time;
+// //     long long tmp  = timestamp_hash(time);
+// //     cout << timestamp_hash(time);
+// //     cout << timestamp_hash_inverse(tmp);
 
 //     // test string hashing:
-//     // string t;
-//     // cin >> t;
-//     // cout << string_hash(t);
-//     // cout << endl;
-//     // cout << string_hash_inverse(string_hash(t));
-//     // // convert10tob(string_hash(t), letter.length());
-//     // cout << endl;
-//     // cout << letter.length();
+//     string t;
+//     cin >> t;
+//     cout << string_hash(t);
+//     cout << endl;
+//     cout << string_hash_inverse(string_hash(t));
+//     // convert10tob(string_hash(t), letter.length());
+//     cout << endl;
+//     cout << letter.length();
 // }

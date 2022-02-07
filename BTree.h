@@ -34,7 +34,7 @@ public:
    }
 
     ~BtreeNode() {
-        for(int i-0;i<2*t-1;i++){
+        for(int i=0;i<2*t-1;i++){
             delete D[i];
         }
         for(int i=0;i<2*t;i++){
@@ -123,24 +123,13 @@ void BtreeNode<T>::insertNonFull(Node<T>* tmp){
         int i = n-1;
         while(i>=0 && tmp->data < D[i] -> data){
             int j= i+1;
-            // keys[j] = keys[i];
-            // cout << "j: " << keys[j] << "i: "<< keys[i] << endl;
             D[j] = D[i];
             i--;
         }
         i++;
-        // keys[i] = tmp;
         n++;
-        // cout << "keys[i] "<< keys[i] << "    "<<" tmp "<< tmp << "i    "<<i << endl;
-        // cout << keys[1] << endl;
-        // for(int i=0;i<n;i++)
-        //     cout << keys[i] << " k";
-        // cout << endl; 
-        // Node<T> *p = new Node<T>(tmp->data);
-        // if(tmp->nextField!=nullptr)
-        //     p->nextField = tmp->nextField;
-        D[i] = tmp; // new Node<T>(tmp->data);
-        // set next fieldes
+        
+        D[i] = tmp; 
         
     }else{
         int i= n-1;
@@ -164,7 +153,6 @@ bool Btree<T>::insert(Node<T>* data){
     if(root == nullptr){
         root = new BtreeNode<T>(t,true);
         root -> D[0] = data;
-        // set next fieldes
         root->n +=1;
     }
     else if(root->n == 2 * t -1){
@@ -295,7 +283,7 @@ void BtreeNode<T>::GetAllDataOfBTree(vector<Node<T>*>& v_nodes){
     childes[j]->GetAllDataOfBTree(v_nodes);
 }
 
-// TODO !
+
 template <typename T>
 int BtreeNode<T>::FindBestId(){  
     vector<Node<T>*> v;
@@ -309,6 +297,8 @@ int BtreeNode<T>::FindBestId(){
 
 template <typename T>
 void BtreeNode<T>::FindAllNodeWithAKey(vector<Node<T>*>& v , T key){
+    // if(this == nullptr)
+    //     return;
     for(int i=0;i<n;i++){
         if(D[i]!=nullptr && D[i]->data == key && !D[i]->status)
             v.push_back(D[i]);
@@ -319,7 +309,7 @@ void BtreeNode<T>::FindAllNodeWithAKey(vector<Node<T>*>& v , T key){
                 childes[i]->FindAllNodeWithAKey(v,key);   
         }    
         else if(i==n-1){
-            if(childes[i]!=nullptr)
+            if(childes[i]!=nullptr && childes[n]!=nullptr)
                 childes[n]->FindAllNodeWithAKey(v,key);   
         }    
     }
@@ -329,10 +319,12 @@ void BtreeNode<T>::FindAllNodeWithAKey(vector<Node<T>*>& v , T key){
 
 template <typename T>
 void BtreeNode<T>::FindAllLessThan(vector<Node<T>*>& v, T key){
+    // if(this == nullptr)
+    //     return;
     int j = 0;
     for (int i = 0; i < n; i++) {
         j=i;  
-        if (!leaf)
+        if (!leaf && childes[i]!=nullptr)
             childes[i]->FindAllLessThan(v,key);
         if(! D[i]->status && D[i]->data < key)
             v.push_back(D[i]);
@@ -341,27 +333,30 @@ void BtreeNode<T>::FindAllLessThan(vector<Node<T>*>& v, T key){
             return; 
   }
   j++; 
-  if (!leaf)
+  if (!leaf && childes[j]!=nullptr)
     childes[j]->FindAllLessThan(v,key);
 }
 
 
 template <typename T>
 void BtreeNode<T>::FindAllGreaterThan(vector<Node<T>*>& v, T key){
+    // if(this==nullptr)
+    //     return;
     int j = 0;
     for (int i = n-1; i >=0 ; i--) {
         j=i;  
-        if (!leaf)
+        if (!leaf && childes[i+1]!=nullptr)
             childes[i+1]->FindAllGreaterThan(v,key);
         if(! D[i]->status && D[i]->data > key )
             v.push_back(D[i]);
         else if(D[i]->data<key)
             return;    
   }
-  if (!leaf)
+  if (!leaf && childes[j]!=nullptr)
     childes[j]->FindAllGreaterThan(v,key);
    
 }
+
 
 // template <typename T>
 // void BtreeNode<T>::traverse(){

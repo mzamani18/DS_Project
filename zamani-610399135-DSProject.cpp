@@ -30,12 +30,17 @@ public:
        for(int i=0;i<2*t;i++){
            childes[i] = nullptr;
        }
-    //    status = new bool[t-1];
-    //    for(int i=0;i<t;i++){
-    //        status[i] = false;
-    //    }
+    
    }
 
+    ~BtreeNode() {
+        for(int i=0;i<2*t-1;i++){
+            delete D[i];
+        }
+        for(int i=0;i<2*t;i++){
+            delete childes[i];
+        }
+    }
    void insertNonFull(Node<T>* tmp);
    void splitChild(BtreeNode<T>* ptr , int tmp);
    void traverse();
@@ -51,7 +56,7 @@ public:
 
 template <typename T> class Node{
 public:
-    T data;  // check it because it was int!
+    T data;  
     Node<T>* nextField;
     // BtreeNode<T>* self;
     bool status;
@@ -78,11 +83,7 @@ public:
         numberOfDeletedNodes = 0;
     }
     bool insert(Node<T>* data);
-    // void deleteNode(vector<Btree<T>>& bt, int type0fcondition,T key,int col);
-
-    ~Btree(){
-        delete [] root;
-    }
+    
 };
 
 
@@ -122,24 +123,13 @@ void BtreeNode<T>::insertNonFull(Node<T>* tmp){
         int i = n-1;
         while(i>=0 && tmp->data < D[i] -> data){
             int j= i+1;
-            // keys[j] = keys[i];
-            // cout << "j: " << keys[j] << "i: "<< keys[i] << endl;
             D[j] = D[i];
             i--;
         }
         i++;
-        // keys[i] = tmp;
         n++;
-        // cout << "keys[i] "<< keys[i] << "    "<<" tmp "<< tmp << "i    "<<i << endl;
-        // cout << keys[1] << endl;
-        // for(int i=0;i<n;i++)
-        //     cout << keys[i] << " k";
-        // cout << endl; 
-        // Node<T> *p = new Node<T>(tmp->data);
-        // if(tmp->nextField!=nullptr)
-        //     p->nextField = tmp->nextField;
-        D[i] = tmp; // new Node<T>(tmp->data);
-        // set next fieldes
+        
+        D[i] = tmp; 
         
     }else{
         int i= n-1;
@@ -163,7 +153,6 @@ bool Btree<T>::insert(Node<T>* data){
     if(root == nullptr){
         root = new BtreeNode<T>(t,true);
         root -> D[0] = data;
-        // set next fieldes
         root->n +=1;
     }
     else if(root->n == 2 * t -1){
@@ -267,6 +256,7 @@ void BtreeNode<T>::deleteNode(vector<vector<Btree<T> >>& bt, int type0fcondition
         for(int i=0;i<bt.size();i++){
             vector<Node<T>*>v_nodes;
             bt[map[tableName]][i].root->GetAllDataOfBTree(v_nodes);
+            delete bt[map[tableName]][i].root;
             int degree = bt[map[tableName]][i].t;
             bt[map[tableName]][i] = Btree<T>(degree);
             for(int j=0;j<v_nodes.size();j++){
@@ -293,28 +283,9 @@ void BtreeNode<T>::GetAllDataOfBTree(vector<Node<T>*>& v_nodes){
     childes[j]->GetAllDataOfBTree(v_nodes);
 }
 
-// TODO !
+
 template <typename T>
-int BtreeNode<T>::FindBestId(){
-//     int index=1;
-//     int j = 0;
-//     for (int i = 0; i < n; i++) {
-//         j=i;  
-//         if (!leaf)
-//             childes[i]->FindBestId();
-//         if(! D[i]->status)
-//             // cout << " " << D[i]->data;
-//             // v_id.push_back(D[i]->data);
-//             if(index!=D[i]->data)
-//                 return index;
-//             else{
-//                 index++;
-//             }    
-//   }
-//   j++; 
-//   if (!leaf)
-//     childes[j]->FindBestId();
-//   return index;  
+int BtreeNode<T>::FindBestId(){  
     vector<Node<T>*> v;
     GetAllDataOfBTree(v);
     for(int i=0;i<v.size();i++){
@@ -326,6 +297,8 @@ int BtreeNode<T>::FindBestId(){
 
 template <typename T>
 void BtreeNode<T>::FindAllNodeWithAKey(vector<Node<T>*>& v , T key){
+    // if(this == nullptr)
+    //     return;
     for(int i=0;i<n;i++){
         if(D[i]!=nullptr && D[i]->data == key && !D[i]->status)
             v.push_back(D[i]);
@@ -336,7 +309,7 @@ void BtreeNode<T>::FindAllNodeWithAKey(vector<Node<T>*>& v , T key){
                 childes[i]->FindAllNodeWithAKey(v,key);   
         }    
         else if(i==n-1){
-            if(childes[i]!=nullptr)
+            if(childes[i]!=nullptr && childes[n]!=nullptr)
                 childes[n]->FindAllNodeWithAKey(v,key);   
         }    
     }
@@ -346,10 +319,12 @@ void BtreeNode<T>::FindAllNodeWithAKey(vector<Node<T>*>& v , T key){
 
 template <typename T>
 void BtreeNode<T>::FindAllLessThan(vector<Node<T>*>& v, T key){
+    // if(this == nullptr)
+    //     return;
     int j = 0;
     for (int i = 0; i < n; i++) {
         j=i;  
-        if (!leaf)
+        if (!leaf && childes[i]!=nullptr)
             childes[i]->FindAllLessThan(v,key);
         if(! D[i]->status && D[i]->data < key)
             v.push_back(D[i]);
@@ -358,118 +333,43 @@ void BtreeNode<T>::FindAllLessThan(vector<Node<T>*>& v, T key){
             return; 
   }
   j++; 
-  if (!leaf)
+  if (!leaf && childes[j]!=nullptr)
     childes[j]->FindAllLessThan(v,key);
 }
 
 
 template <typename T>
 void BtreeNode<T>::FindAllGreaterThan(vector<Node<T>*>& v, T key){
+    // if(this==nullptr)
+    //     return;
     int j = 0;
     for (int i = n-1; i >=0 ; i--) {
         j=i;  
-        if (!leaf)
+        if (!leaf && childes[i+1]!=nullptr)
             childes[i+1]->FindAllGreaterThan(v,key);
         if(! D[i]->status && D[i]->data > key )
             v.push_back(D[i]);
         else if(D[i]->data<key)
             return;    
   }
-  if (!leaf)
+  if (!leaf && childes[j]!=nullptr)
     childes[j]->FindAllGreaterThan(v,key);
-    // for(int i=n-1;i>=0;i--){
-    //     if(D[i]!=nullptr && D[i]->data >= key){
-    //         if(D[i]->data!=key && !D[i]->status)
-    //             v.push_back(D[i]);
-
-    //         if(childes[i+1] != nullptr)
-    //             childes[i+1]->FindAllGreaterThan(v,key);
-    //     }
-    //     else{
-    //         if(childes[i]!=nullptr)
-    //             childes[i]->FindAllGreaterThan(v,key);
-
-    //         break;
-    //     }
-    // }
-    // return;
-    
-    // if(leaf){
-    //     for(int i=n;i>=0;i--){
-    //         if(D[i]!=nullptr && D[i]->data > key && !D[i]->status){
-    //             v.push_back(D[i]);
-    //         }
-    //     }
-    // }
-    // else{
-    //     int i = n-1;
-    //     while(D[i]!= nullptr && D[i]->data >= key && i>=0){
-    //         if(D[i]->data > key && !D[i]->status)
-    //             v.push_back(D[i]);
-    //         if(childes[i+1]!=nullptr)    
-    //             childes[i+1]->FindAllGreaterThan(v,key);
-    //         i--;    
-    //     }
-    //     if(i>=0 && childes[i]!=nullptr)
-    //         childes[i]->FindAllGreaterThan(v,key);
-    // }
+   
 }
 
-// template <typename T>
-// void BtreeNode<T>::traverse(){
-//     int j = 0;
-//     for (int i = 0; i < n; i++) {
-//         j=i;  
-//         if (!leaf)
-//             childes[i]->traverse();
-//         if(! D[i]->status )
-//             cout << " " << D[i]->data;
-//     }        
-//   j++; 
-//   if (!leaf)
-//     childes[j]->traverse();
-// };
-
-// int main(){
-//     // 1. we get query of making a table
-//     // 2. we shold requgnize types and every field name
-//     // example : CREATE TABLE employee (name string,joinDate timestamp,income int)
-//     // insert  
-    // Btree<int> t = Btree<int>(3);
-    // Node<int> *p = new Node<int>(8);
-    // Node<int>* q=p;
-    // t.insert(p);
-    // p = new Node<int>(10);
-    // t.insert(p);
-    // p = new Node<int>(9);
-    // t.insert(p);
-    // p = new Node<int>(11);
-    // t.insert(p);
-    // t.root->traverse();
-    
-//     cout << endl;
-//     t.deleteNode(q);
-//     t.root->traverse();
-//     cout << endl << "test " << t.root->is_valid(100);
-//     // t.insert(9);
-//     // t.insert(10);
-//     // t.insert(11);
-//     // t.insert(15);
-//     // t.insert(16);
-//     // t.insert(17);
-//     // t.insert(18);
-//     // t.insert(20);
-//     // t.insert(23);
-//     // t.traverse();
-// }; 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // we asuume that we have small letters.
-string letter = "abcdefghijklmnopqrstuvwxyzA";
+string letter = "abcdefghijklmnopqrstuvwxyz0123456789A";
 
 // get the position of the letter in letter.
 int ASCII(char tmp)
 {
-    return int(tmp) - 96;
+    for(int i=0;i<letter.length();i++){
+        if(letter[i]==tmp)
+            return i+1;
+    }
+    return 0;
 }
 
 // this function converts a string to int.
@@ -599,27 +499,7 @@ string string_hash_inverse(long long hashed)
     return reverse(res);
 }
 
-// for testing these functions.
-// int main()
-// {
-
-//     // test timestamp hashing:
-//     string time;
-//     cin >> time;
-//     long long tmp  = timestamp_hash(time);
-//     cout << timestamp_hash(time);
-//     cout << timestamp_hash_inverse(tmp);
-
-//     // test string hashing:
-//     // string t;
-//     // cin >> t;
-//     // cout << string_hash(t);
-//     // cout << endl;
-//     // cout << string_hash_inverse(string_hash(t));
-//     // // convert10tob(string_hash(t), letter.length());
-//     // cout << endl;
-//     // cout << letter.length();
-// }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // this function will delete all unexpected space in our input!
 string ignore_space(string str)
@@ -818,9 +698,7 @@ void print_selectQuery(bool flag, vector<int> v_dataType, int col, vector<Node<l
             Id.push_back(tmp->data);
         }
         int i, j; 
-        for (i = 0; i < v.size(); i++) {    
-      
-            // Last i elements are already in place 
+        for (i = 0; i < v.size(); i++) {     
             for (j = 0; j < v.size()-i-1; j++) {
                 if (Id[j] > Id[j+1]){ 
                     swap(Id[j], Id[j+1]); 
@@ -838,26 +716,20 @@ void print_selectQuery(bool flag, vector<int> v_dataType, int col, vector<Node<l
                 p = p->nextField;
             }
             v_tmp.push_back(p->data);
-            // for(int i=0;i<v_tmp.size();i++){
-            //     cout << v_tmp[i] <<" ";
-            // }
-            // cout << " col :" << col;
+            
             int k = 0;
             for (int j = v_tmp.size() - col; j <= v_tmp.size() - 1; j++)
             {
                 if (v_dataType[k] == 0)
                 {
-                    // cout << v_tmp[j] << " ";
                     result.push_back(to_string(v_tmp[j]));
                 }
                 else if (v_dataType[k] == 1)
                 {
-                    // cout << string_hash_inverse(v_tmp[j]) << " ";
                     result.push_back(string_hash_inverse(v_tmp[j]));
                 }
                 else if (v_dataType[k] == 2)
                 {
-                    // cout << timestamp_hash_inverse(v_tmp[j]) << " ";
                     result.push_back(timestamp_hash_inverse(v_tmp[j]));
                 }
                 k++;
@@ -866,22 +738,18 @@ void print_selectQuery(bool flag, vector<int> v_dataType, int col, vector<Node<l
             {
                 if (v_dataType[k] == 0)
                 {
-                    // cout << v_tmp[j] << " ";
                     result.push_back(to_string(v_tmp[j]));
                 }
                 else if (v_dataType[k] == 1)
                 {
-                    // cout << string_hash_inverse(v_tmp[j]) << " ";
                     result.push_back(string_hash_inverse(v_tmp[j]));
                 }
                 else if (v_dataType[k] == 2)
                 {
-                    // cout << timestamp_hash_inverse(v_tmp[j]) << " ";
                     result.push_back(timestamp_hash_inverse(v_tmp[j]));
                 }
                 k++;
             }
-            // cout << endl;
             result.push_back("newline");
         }
     }
@@ -1003,15 +871,12 @@ void Update_data(int col, vector<string> v_columnName, vector<int> v_dataType, v
                 {
                     d = timestamp_hash(v_allDataForUpdate[m - 1]);
                 }
-                // cout << "d: " << d << endl;
-                // cout << " before: " << tmp->data << endl;
+                
                 tmp->data = d;
-                // cout << " after : " << tmp->data << endl;
                 tmp = tmp->nextField;
                 if (m == v_dataType.size() - 1)
                 {
                     m = 0;
-                    // tmp = tmp->nextField;
                 }
                 else
                 {
@@ -1063,12 +928,9 @@ void CreateTableQuery(string query, vector<vector<int>> &v_dataType, vector<vect
             tableName += query[i];
             i++;
         }
-        // cout << " " << tableName << " " << endl;
         map[tableName] = num_of_tree;
-        // cout << map[tableName] << endl;
         num_of_tree++;
-        // cout << tableName << endl;
-        // i++;
+        
 
         string str = "";
         for (int j = 0; j < query.length(); j++)
@@ -1079,7 +941,6 @@ void CreateTableQuery(string query, vector<vector<int>> &v_dataType, vector<vect
                 break;
             }
         }
-        // cout << str << endl;
         vector<string> tmp_name;
         vector<int> tmp_type;
         tmp_name.push_back("ID");
@@ -1094,7 +955,6 @@ void CreateTableQuery(string query, vector<vector<int>> &v_dataType, vector<vect
                 t += str[i];
                 i++;
             }
-            // cout << "t: "<< t;
             tmp_name.push_back(t);
             t = "";
             i++;
@@ -1112,7 +972,6 @@ void CreateTableQuery(string query, vector<vector<int>> &v_dataType, vector<vect
         vector<Btree<long long>> v_b;
         for (int i = 0; i < v_columnName[map[tableName]].size(); i++)
         {
-            // bt[map[tableName]].push_back(Btree<long long>(3));
             v_b.push_back(Btree<long long>(3));
         };
         bt.push_back(v_b);
@@ -1137,7 +996,7 @@ void InsertIntoQuery(string query, vector<vector<int>> v_dataType, vector<vector
 
         vector<string> v_allDataToInsert;
         string tmp = query.substr(0, 12);
-        // cout << tmp;
+        
         if (tmp != "INSERT INTO ")
             throw query;
         string tableName="";
@@ -1146,7 +1005,6 @@ void InsertIntoQuery(string query, vector<vector<int>> v_dataType, vector<vector
             tableName+=query[l];
             l++;
         }
-        // cout << " " << tableName << " " << endl;
         string str;
         for (int i = 0; i < query.length(); i++)
         {
@@ -1170,30 +1028,6 @@ void InsertIntoQuery(string query, vector<vector<int>> v_dataType, vector<vector
             if (str[i] == ')')
                 break;
         }
-        // for(int i=0;i<v_allDataToInsert.size();i++){
-        //     cout << v_allDataToInsert[i] << " ";
-        // }
-        // cout << endl;
-
-        // in this section i should check validation type
-        for (int i = 1; i < v_dataType[map[tableName]].size(); i++)
-        {
-            if (v_dataType[map[tableName]][i] == 2)
-            {
-                if (!valid_timestamp(v_allDataToInsert[i - 1]))
-                {
-                    throw v_allDataToInsert;
-                }
-            }
-            else if (v_dataType[map[tableName]][i] == 1)
-            {
-                if (!valid_string(v_allDataToInsert[i - 1]))
-                {
-                    throw v_allDataToInsert;
-                }
-            }
-        }
-
         // find best id
         int id=0;
         if (bt[map[tableName]][0].root == nullptr)
@@ -1208,7 +1042,6 @@ void InsertIntoQuery(string query, vector<vector<int>> v_dataType, vector<vector
         // make all nodes
         Node<long long> *prv = new Node<long long>(id);
         Node<long long> *ID = prv;
-        // bt[0].insert(prv);
 
         for (int i = 1; i < v_dataType[map[tableName]].size(); i++)
         {
@@ -1217,30 +1050,24 @@ void InsertIntoQuery(string query, vector<vector<int>> v_dataType, vector<vector
             if (v_dataType[map[tableName]][i] == 0)
             {
                 data = stoi(v_allDataToInsert[i - 1]);
-                // cout << "0      "<< data << endl;
             }
             else if (v_dataType[map[tableName]][i] == 1)
             {
                 data = string_hash(v_allDataToInsert[i - 1]);
-                // cout <<"1    " << data << endl;
             }
             else if (v_dataType[map[tableName]][i] == 2)
             {
                 data = timestamp_hash(v_allDataToInsert[i - 1]);
-                // cout <<"2    "<< data << endl;
             }
             Node<long long> *p = new Node<long long>(data);
             prv->nextField = p;
             bt[map[tableName]][i-1].insert(prv);
-            // cout << prv->nextField->data<<endl;
             prv = p;
             // insert it to our btree.
             if (i == bt[map[tableName]].size() - 1)
             {
                 p->nextField = ID; // the last one have a pointer to first one.
                 bt[map[tableName]][i].insert(p);
-                // cout << p->nextField->data << endl;
-                // cout << p->data << endl;
             }
             // cout << p->nextField->data << endl;
         };
@@ -1307,13 +1134,8 @@ void UpdateQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
 
         i += 7;
         condition = str.substr(i);
-        // for(int i=0;i<v_allDataForUpdate.size();i++){
-        //     cout << v_allDataForUpdate[i] << " ";
-        // }
-        // cout << endl;
-        // cout << "condition : " << condition;
+       
         string colName = colNameOfCondition(condition);
-        // cout << colName << endl;
         // we define == = 0 and > = 1 and < = 2.
         int typecondition = TypeOfCondition(condition);
         // cout << typecondition << endl;
@@ -1326,7 +1148,6 @@ void UpdateQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
 
         string limit = FindLimitation(condition);
         limit = reverse(limit);
-        // cout << colName << " "<< typecondition << " " << col <<" "<< limit<< endl;
         if (typecondition == 0)
         {
             vector<Node<long long> *> v;
@@ -1408,7 +1229,7 @@ void DeleteFromQuery(string query, vector<vector<int>> v_dataType, vector<vector
     {
         string condition = "";
         string tmp = query.substr(0, 12);
-        // cout << tmp;
+
         if (tmp != "DELETE FROM ")
             throw query;
         int l = 12;
@@ -1417,7 +1238,6 @@ void DeleteFromQuery(string query, vector<vector<int>> v_dataType, vector<vector
             tableName += query[l];
             l++;
         }
-        // cout << " " << tableName << " " << tableName.length()<<endl;
         int i = 0, c = 0;
         while (c != 3)
         {
@@ -1430,14 +1250,11 @@ void DeleteFromQuery(string query, vector<vector<int>> v_dataType, vector<vector
                 return;
             }
         }
-        // cout << "where : " << query.substr(i,5) ;
         if (query.substr(i, 5) != "WHERE")
             throw query;
 
         i += 6;
         condition = query.substr(i);
-
-        // cout << "condition : " << condition << endl;
 
         string colName = colNameOfCondition(condition);
         // cout << colName << endl;
@@ -1453,47 +1270,20 @@ void DeleteFromQuery(string query, vector<vector<int>> v_dataType, vector<vector
 
         string limit = FindLimitation(condition);
         limit = reverse(limit);
-        // cout << "col : " << col << "limit: " << limit << endl;
-        // cout << v_dataType[col] << endl;
         long long key = 0;
         if (v_dataType[map[tableName]][col] == 0)
         {
-            // bt[col].root->deleteNode(bt,typecondition,stoi(limit),col);
             key = stoi(limit);
         }
         else if (v_dataType[map[tableName]][col] == 1)
         {
-            // bt[col].root->deleteNode(bt,typecondition,string_hash(limit),col);
             key = string_hash(limit);
         }
         else if (v_dataType[map[tableName]][col] == 2)
         {
-            // bt[col].root->deleteNode(bt,typecondition,timestamp_hash(limit),col);
             key = timestamp_hash(limit);
         }
         bt[map[tableName]][col].root->deleteNode(bt,typecondition,key,col,map,tableName);
-    //     vector<Node<long long>*> v;
-    // cout << map[tableName] << " ";
-    // if(typecondition == 0){;
-    //     bt[map[tableName]][col].root->FindAllNodeWithAKey(v,key);
-    // }else if (typecondition==2){
-    //     bt[map[tableName]][col].root -> FindAllLessThan(v,key);
-    // }else if(typecondition== 1){
-    //     bt[map[tableName]][col].root -> FindAllGreaterThan(v,key);
-    // }
-    // if(v.size()==0){
-    //     // cout << "there are not any record with these limitations for delete!" << endl;
-    //     return;
-    // }
-    // for(int i=0;i<v.size();i++){
-    //     Node<long long>*p = v[i];
-    //     while(p->nextField!=v[i]){
-    //         p->status = true;
-    //         p = p->nextField;
-    //     }
-    //     p->status = true;
-    //     bt[map[tableName]][i].numberOfDeletedNodes++;
-    // }
         
     }
     catch (...)
@@ -1550,11 +1340,6 @@ void SelectQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
                     break;
             }
         }
-        // for(int i=0;i<selectedCol.size();i++){
-        //     cout << selectedCol[i].length() << " ";
-        // }
-        // cout << endl;
-        // return;
         int i = 0, c = 0;
         while (c != 4)
         {
@@ -1574,16 +1359,13 @@ void SelectQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
             l--;
         }
         tableName = reverse(tableName);
-        // cout << " " << tableName << " " << endl;
         if (query.substr(i, 5) != "WHERE")
             throw query;
 
         i += 6;
         condition = query.substr(i);
-        // cout << condition << endl;
 
         string colName = colNameOfCondition(condition);
-        // cout << colName << endl;
         // we define == = 0 and > = 1 and < = 2.
         int typecondition = TypeOfCondition(condition);
         // cout << typecondition << endl;
@@ -1597,7 +1379,6 @@ void SelectQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
         string limit = FindLimitation(condition);
         limit = reverse(limit);
 
-        // cout << colName << " "<< typecondition << " " << col <<" "<< limit<< endl;
         if (typecondition == 0)
         {
             vector<Node<long long> *> v;
@@ -1644,9 +1425,6 @@ void SelectQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
             if (v_dataType[map[tableName]][col] == 0)
             {
                 bt[map[tableName]][col].root->FindAllGreaterThan(v, stoi(limit));
-                // cout << v.size() << endl;
-                // bt[col].root->traverse();
-                // cout << endl;
                 print_selectQuery(flag,v_dataType[map[tableName]],col,v,v_columnName[map[tableName]],selectedCol,result);
             }
             else if (v_dataType[map[tableName]][col] == 1)
@@ -1666,6 +1444,7 @@ void SelectQuery(string query, vector<vector<int>> v_dataType, vector<vector<str
         // cout << "Invalid Syntax ERROR! SelectQuery.  status:400 , msg : BadRequest. " << endl;
     }
 }
+
 // SELECT (name,income) FROM employee WHERE income<62000
 // CREATE TABLE employee (name string,joinDate timestamp,income int)
 // INSERT INTO employee VALUES ("hamid",2022/8/6,45000)
@@ -1709,23 +1488,18 @@ int main()
     cin >> number_of_req;
 
     string query;
-    // getline(cin, query);
+    
     vector<string> result;
     vector<vector<int>> v_dataType;       // in this vector we save type od every column.
-    // v_dataType.push_back(0);      // by defult every table has a ID column that is a integer.
+    
     vector<vector<string>> v_columnName;  // in this vector we save title of every column of table.
-    // v_columnName.push_back("ID"); // by defult every table hase a ID column.
-    // string tableName = "";        // in this string we will save name of the table.
-    // vector<Btree<long long> > bt;  // create all btrees that we need to them.
-    vector<vector<Btree<long long>>> bt;
-    unordered_map<string,int> map;
+    
+    vector<vector<Btree<long long>>> bt; // create all btrees that we need to them.
+    unordered_map<string,int> map;  // we will shoe every tree by a number.
 
     cin.ignore();
     int num_of_tree = 0;
-    
-    // query = ignore_space(query);
-
-    // type_of_query(query, v_dataType,v_columnName,tableName,bt);
+   
 
     for (int i = 0; i < number_of_req; i++)
     {
@@ -1740,83 +1514,4 @@ int main()
         }
         else cout << endl;
     }
-
-    // for(int j=0;j<v_columnName.size();j++){
-    //     cout << v_columnName[j]<<" ";
-    // }
-    // cout << endl;
-    // for(int i=0;i<v_dataType.size();i++){
-    //     cout << v_dataType[i] << " ";
-    // }
-    // }
-
-    // Btree<int> t = Btree<int>(3);
-    // Node<int> *p = new Node<int>(2);
-    // // Node<int>* q=p;
-    // t.insert(p);
-    // p = new Node<int>(8);
-    // t.insert(p);
-    // p = new Node<int>(8);
-    // t.insert(p);
-    // p = new Node<int>(11);
-    // t.insert(p);
-    // p = new Node<int>(123);
-    // t.insert(p);
-    // p = new Node<int>(8);
-    // t.insert(p);
-    // p = new Node<int>(1);
-    // t.insert(p);
-    // // t.root->traverse();
-    // cout << endl;
-    // cout << t.root->FindBestId();
-
-    // vector<Node<int>*> v;
-    // t.root->FindAllGreaterThan(v,34);
-    // // // // t.root ->FindAllNodeWithAKey(v,45);
-    // // // // cout << endl;
-    // for(int i=0;i<v.size();i++){
-    //     cout << v[i]->data << " ";
-    // }
-    // cout << endl;
-
-    // string name;
-    // cin >> name;
-    // cout << string_hash(name) << endl;
-    // cout << string_hash_inverse(string_hash(name)) << endl;
-
-    // string tmp;
-    // getline(cin , tmp);
-    // cout << tmp << endl;
-    // cout << tmp.substr(0,13);
-    // type_of_query(tmp);
-    // CreateTableQuery(tmp, v_dataType,v_columnName,tableName);
-
-    // getline(cin , tmp);
-    // InsertIntoQuery(tmp, v_dataType,v_columnName,tableName);
-
-    // UpdateQuery(tmp, v_dataType,v_columnName,tableName);
-
-    // DeleteFromQuery(tmp, v_dataType,v_columnName,tableName);
-
-    // SelectQuery(tmp, v_dataType,v_columnName,tableName);
-
-    // ISERT INTO employee   VALUES ("Atena",   2019/7/6,55000);
 }
-
-// test case :
-/*
-13
-CREATE TABLE employee (name string,joinDate timestamp,income int)
-INSERT INTO employee   VALUES ("atena",   2019/7/6,55000)
-INSERT INTO employee VALUES ("sajede",2020/5/24,20000)
-INSERT INTO employee VALUES ("zahra",2019/4/5,70000)
-INSERT INTO employee VALUES ("narges",2018/4/5,40000)
-INSERT INTO employee VALUES ("mohammad",2020/1/1,67000)
-DELETE FROM employee WHERE income<50000
-INSERT INTO emp0 loyee VALUES ("asha",2018/12/5,60000)
-SELECT * FROM employee WHERE name=="asha"
-SELECT (name,income) FROM employee WHERE income>60000
-CREATE TABLE empl (name string,joinDate timestamp,income int)
-INSERT INTO empl VALUES ("narges",2018/4/5,40000)
-SELECT (name,income) FROM empl WHERE income>60000
-*/
